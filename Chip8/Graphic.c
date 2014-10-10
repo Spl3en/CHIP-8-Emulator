@@ -30,22 +30,6 @@ Graphic_new (
 }
 
 
-void Graphic_debug (Graphic *this)
-{
-	for (int y = 0; y < 32; ++y)
-	{
-		for (int x = 0; x < 64; ++x)
-		{
-			if (this->pixels[(y*64) + x].value == 0)
-				printf("O");
-			else
-				printf(" ");
-		}
-		printf("\n");
-	}
-	printf("\n");
-}
-
 /*
  * Description : Initialize an allocated Graphic structure.
  * Graphic *this : An allocated Graphic to initialize.

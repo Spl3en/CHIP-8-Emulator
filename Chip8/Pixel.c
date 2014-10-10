@@ -51,8 +51,6 @@ Pixel_init (
 	sfRectangleShape_setPosition  (this->rect, (sfVector2f) {.x = PIXEL_SIZE * x, .y = PIXEL_SIZE * y});
 	sfRectangleShape_setSize      (this->rect, (sfVector2f) {.x = PIXEL_SIZE, .y = PIXEL_SIZE});
 	sfRectangleShape_setFillColor (this->rect, sfBlack);
-	//sfRectangleShape_setOutlineColor (this->rect, sfRed);
-	//sfRectangleShape_setOutlineThickness (this->rect, 2.0);
 
 	return true;
 }

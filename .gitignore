@@ -1,5 +1,4 @@
 *.depend
 *.layout
-games/
 obj/
 bin/

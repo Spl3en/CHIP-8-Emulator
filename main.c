@@ -1,10 +1,8 @@
 #include "Chip8/CPU.h"
 
-int main(int argc, char **argv)
-{
-	// sfVideoMode desktop = sfVideoMode_getDesktopMode ();
-	// AppWindow *window = AppWindow_new ("VisualBinary", desktop.width * 0.667, desktop.height * 0.667, false);
 
+int main (int argc, char **argv)
+{
 	Cpu *cpu = NULL;
 
 	if ((cpu = Cpu_new ()) == NULL) {
