@@ -9,7 +9,7 @@
 #include <stdint.h>
 
 // ---------- Defines -------------
-#define MEMORY_SIZE 4096
+#define MEMORY_SIZE 0x1000
 #define REGISTERS_COUNT 16
 #define STACK_SIZE 16
 #define KEYS_COUNT 16
@@ -17,7 +17,7 @@
 // Memory layout
 #define USER_SPACE_START_ADDRESS 0x200
 #define DISPLAY_REFRESH_START_ADDRESS 0xF00
-#define USER_PROGRAM_SPACE_SIZE (DISPLAY_REFRESH_START_ADDRESS - USER_SPACE_START_ADDRESS)
+#define USER_PROGRAM_SPACE_SIZE (MEMORY_SIZE - USER_SPACE_START_ADDRESS)
 #define FONT_START_ADDRESS 0x000
 
 
@@ -40,7 +40,7 @@ typedef struct _Cpu
 	uint8_t memory [MEMORY_SIZE];
 
 	// Index register
-	uint16_t index;
+	uint16_t I;
 
 	// Instruction pointer register
 	uint16_t ip;

@@ -95,10 +95,10 @@ Graphic_clearScreen (
 	Graphic *this
 ) {
 	for (int i = 0; i < RESOLUTION_W * RESOLUTION_H; i++) {
-		if (Pixel_setValue (&this->pixels[i], 0)) {
-			this->update = true;
-		}
+		Pixel_setValue (&this->pixels[i], 0);
 	}
+
+	this->update = true;
 }
 
 
@@ -121,7 +121,6 @@ Graphic_render (
 			for (int pos = 0; pos < RESOLUTION_H * RESOLUTION_W; pos++) {
 				Pixel *pixel = &this->pixels[pos];
 				sfRenderWindow_drawRectangleShape (this->window, pixel->rect, NULL);
-				pixel->update = false;
 			}
 
 			// Display
@@ -162,6 +161,12 @@ Graphic_drawSprite (
 	uint16_t index = *this->index;
 	bool result = false;
 	uint8_t mempix;
+
+	if (x > RESOLUTION_W || y > RESOLUTION_H) {
+		dbg ("Warning : drawing out of screen : \n"
+			 "(x=0x%x, max=0x%x) | (y=0x%x, max=0x%x)", x, RESOLUTION_W, y, RESOLUTION_H);
+		exit (0);
+	}
 
 	for (int yline = 0; yline < height; yline++)
 	{

@@ -15,7 +15,6 @@ typedef struct _Pixel
 {
 	sfRectangleShape *rect;
 	uint8_t value;
-	bool update;
 
 } 	Pixel;
 
@@ -65,9 +64,9 @@ Pixel_test (
  * Description : 	Set a new value to a pixel on the screen.
 					If its value doesn't change, do nothing.
  * Pixel *this : An allocated Pixel
- * Return : bool true on pixel value changed, false otherwise
+ * Return : void
  */
-bool
+void
 Pixel_setValue (
 	Pixel *this,
 	uint8_t value

@@ -75,21 +75,17 @@ Pixel_free (
  * Description : 	Set a new value to a pixel on the screen.
 					If its value doesn't change, do nothing.
  * Pixel *this : An allocated Pixel
- * Return : bool true on pixel value changed, false otherwise
+ * Return : void
  */
-bool
+void
 Pixel_setValue (
 	Pixel *this,
 	uint8_t value
 ) {
 	if (this->value != value) {
 		this->value = value;
-		this->update = true;
 		sfRectangleShape_setFillColor (this->rect, (value) ? sfWhite : sfBlack);
-		return true;
 	}
-
-	return false;
 }
 
 

@@ -47,7 +47,7 @@ Cpu_init (
 	this->ip = USER_SPACE_START_ADDRESS;
 
 	// Load screen component
-	this->screen = Graphic_new (this->memory, &this->index);
+	this->screen = Graphic_new (this->memory, &this->I);
 
 	// The program is ready to run from this point
 	this->isRunning = true;
@@ -104,7 +104,7 @@ Cpu_fetchOpcode (
 ) {
 	// 16 bytes instructions : read the next 2 bytes in memory
 	this->opcode = (this->memory[this->ip] << 8
-						|  this->memory[this->ip + 1]);
+				 |  this->memory[this->ip + 1]);
 }
 
 /*
@@ -120,7 +120,7 @@ Cpu_debug (
 
 	for (int h = 0; h < 4; h++) {
 		for (int w = 0; w < 4; w++, id++) {
-			printf ("V%X : %04X", id, this->V[id]);
+			printf ("V%X : %02X", id, this->V[id]);
 			if (w != 3) {
 				printf (" | ");
 			}
@@ -129,7 +129,7 @@ Cpu_debug (
 	}
 
 	printf ("IP : %04X | SP : %04X | Index : %04X\n",
-		this->ip, this->sp, this->index);
+		this->ip, this->sp, this->I);
 
 	printf("delayTimer : %03d | soundTimer : %03d\n",
 		this->delayTimer, this->soundTimer);
@@ -169,23 +169,23 @@ Cpu_executeOpcode (
 
 	switch (opcode & 0xF000)
 	{
-		//   0x0XXX
 		case 0x0000:
 			switch (opcode & 0x0F00)
 			{
-				//   0x00XX
 				case 0x0000:
 					switch (opcode & 0x00FF)
 					{
-						/*   0x00E0 	Clears the screen. */
 						case 0x00E0:
+						/*   0x00E0 	Clears the screen. */
 							Graphic_clearScreen (this->screen);
 						break;
 
-						/*   0x00EE 	Returns from a subroutine. */
 						case 0x00EE:
+						/*   0x00EE 	Returns from a subroutine. */
 							// Pop the return address in ip
-							this->ip = this->stack[this->sp--];
+							this->sp--;
+							this->ip = this->stack[this->sp];
+							this->ip += 2;
 						break;
 
 
@@ -193,275 +193,269 @@ Cpu_executeOpcode (
 					}
 				break;
 
-				//   0x0NNN 	Calls RCA 1802 program at address NNN.
 				default :
-					Cpu_unknownOpcode(this);
+				//   0x0NNN 	Calls RCA 1802 program at address NNN.
+					printf("Unhandled 0x0NNN.\n");
 				break;
 			}
 		break;
 
-		/*   0x1NNN 	Jumps to address NNN. */
 		case 0x1000:
+		/*   0x1NNN 	Jumps to address NNN. */
 			this->ip = _NNN;
 		break;
 
-		/*   0x2NNN 	Calls subroutine at NNN. */
 		case 0x2000:
+		/*   0x2NNN 	Calls subroutine at NNN. */
 			// Push the return address on the stack
-			this->stack[this->sp++] = this->ip + 2;
+			this->stack[this->sp] = this->ip;
+			// Update stack pointer value
+			this->sp++;
 			// Jump to address NNN.
 			this->ip = _NNN;
 		break;
 
-		/*   0x3XNN 	Skips the next instruction if VX equals NN. */
 		case 0x3000:
+		/*   0x3XNN 	Skips the next instruction if VX equals NN. */
 			this->ip += (VX == __NN) ? 4 : 2;
 		break;
 
-		/*   0x4XNN 	Skips the next instruction if VX doesn't equal NN. */
 		case 0x4000:
+		/*   0x4XNN 	Skips the next instruction if VX doesn't equal NN. */
 			this->ip += (VX != __NN) ? 4 : 2;
 		break;
 
-		/*   0x5XY0 	Skips the next instruction if VX equals VY. */
 		case 0x5000:
+		/*   0x5XY0 	Skips the next instruction if VX equals VY. */
 			this->ip += (VX == VY) ? 4 : 2;
 		break;
 
-		/*   0x6XNN 	Sets VX to NN. */
 		case 0x6000:
+		/*   0x6XNN 	Sets VX to NN. */
 			VX = __NN;
 			this->ip += 2;
 		break;
 
-		/*   0x7XNN 	Adds NN to VX. */
 		case 0x7000:
+		/*   0x7XNN 	Adds NN to VX. */
 			VX += __NN;
 			this->ip += 2;
 		break;
 
-		//   0x8XXX
 		case 0x8000:
 			switch (opcode & 0x000F)
 			{
-				/*   0x8XY0 	Sets VX to the value of VY. */
 				case 0x0000:
-					VX  = VY;
+				/*   0x8XY0 	Sets VX to the value of VY. */
+					VX = VY;
 					this->ip += 2;
 				break;
 
-				/*   0x8XY1 	Sets VX to VX or VY. */
 				case 0x0001:
+				/*   0x8XY1 	Sets VX to VX or VY. */
 					VX |= VY;
 					this->ip += 2;
 				break;
 
-				/*   0x8XY2 	Sets VX to VX and VY. */
 				case 0x0002:
+				/*   0x8XY2 	Sets VX to VX and VY. */
 					VX &= VY;
 					this->ip += 2;
 				break;
 
-				/*   0x8XY3 	Sets VX to VX xor VY. */
 				case 0x0003:
+				/*   0x8XY3 	Sets VX to VX xor VY. */
 					VX ^= VY;
 					this->ip += 2;
 				break;
 
-				/*   0x8XY4 	Adds VY to VX. VF is set to 1 when there's a carry, and to 0 when there isn't. */
 				case 0x0004:
+				/*   0x8XY4 	Adds VY to VX. VF is set to 1 when there's a carry, and to 0 when there isn't. */
 					VF = (VY > (0xFF - VX)) ? 1 : 0; // carry
 					VX += VY;
 					this->ip += 2;
 				break;
 
-				/*   0x8XY5 	VY is subtracted from VX. VF is set to 0 when there's a borrow, and 1 when there isn't. */
 				case 0x0005:
+				/*   0x8XY5 	VY is subtracted from VX. VF is set to 0 when there's a borrow, and 1 when there isn't. */
 					VF = (VY > VX) ? 0 : 1; // borrow
 					VX -= VY;
 					this->ip += 2;
 				break;
 
-				/*   0x8XY6 	Shifts VX right by one. VF is set to the value of the least significant bit of VX before the shift. */
 				case 0x0006:
+				/*   0x8XY6 	Shifts VX right by one. VF is set to the value of the least significant bit of VX before the shift. */
 					VF = VX & 0x1;
 					VX >>= 1;
 				break;
 
-				/*   0x8XY7 	Sets VX to VY minus VX. VF is set to 0 when there's a borrow, and 1 when there isn't. */
 				case 0x0007:
+				/*   0x8XY7 	Sets VX to VY minus VX. VF is set to 0 when there's a borrow, and 1 when there isn't. */
 					VF = (VX > VY) ? 0 : 1; // borrow
 					VX = VY - VX;
 					this->ip += 2;
 				break;
 
-				/*   0x8XYE 	Shifts VX left by one. VF is set to the value of the most significant bit of VX before the shift. */
 				case 0x000E:
+				/*   0x8XYE 	Shifts VX left by one. VF is set to the value of the most significant bit of VX before the shift. */
 					VF = VX >> 7;
 					VX <<= 1;
 					this->ip += 2;
 				break;
 
-				default : Cpu_unknownOpcode (this); break;
+				default :
+					Cpu_unknownOpcode (this);
+				break;
 			}
 		break;
 
-		/*   0x9XY0 	Skips the next instruction if VX doesn't equal VY. */
 		case 0x9000:
+		/*   0x9XY0 	Skips the next instruction if VX doesn't equal VY. */
 			this->ip += (VX != VY) ? 4 : 2;
 		break;
 
-		/*   0xANNN 	Sets I to the address NNN. */
 		case 0xA000:
-			this->index = _NNN;
+		/*   0xANNN 	Sets I to the address NNN. */
+			this->I = _NNN;
 			this->ip += 2;
 		break;
 
-		/*   0xBNNN 	Jumps to the address NNN plus V0. */
 		case 0xB000:
+		/*   0xBNNN 	Jumps to the address NNN plus V0. */
 			this->ip = _NNN + V[0];
 		break;
 
-		/*  CXNN 	Sets VX to a random number and NN. */
 		case 0xC000:
+		/*  CXNN 	Sets VX to a random number and NN. */
 			VX = (rand() % 0xFF) & __NN;
 			this->ip += 2;
 		break;
 
+		case 0xD000:
 		/*   0xDXYN		Sprites stored in memory at location in index register (I), maximum 8bits wide.
 						Wraps around the screen.
 						If when drawn, clears a pixel, register VF is set to 1 otherwise it is zero.
 						All drawing is XOR drawing (e.g. it toggles the screen pixels)
 		*/
-		case 0xD000: {
 			// Set VF to 1 if a pixel changed from 1 to 0
+			Cpu_debug(this);
 			VF = Graphic_drawSprite (this->screen, VX, VY, ___N);
 			this->ip += 2;
-		}
 		break;
 
-		//   0xEXXX
 		case 0xE000:
 			switch (opcode & 0x00FF)
 			{
-				/*   0xEX9E 	Skips the next instruction if the key stored in VX is pressed. */
 				case 0x009E:
+				/*   0xEX9E 	Skips the next instruction if the key stored in VX is pressed. */
 					this->ip += (this->keysState[VX] != 0) ? 4 : 2;
 				break;
 
-				/*   0xEXA1 	Skips the next instruction if the key stored in VX isn't pressed. */
 				case 0x00A1:
+				/*   0xEXA1 	Skips the next instruction if the key stored in VX isn't pressed. */
 					this->ip += (this->keysState[VX] == 0) ? 4 : 2;
+				break;
+
+				default :
+					Cpu_unknownOpcode (this);
 				break;
 			}
 		break;
 
-		//   0xFXXX
 		case 0xF000:
-			switch (opcode & 0x00F0)
+			switch (opcode & 0x00FF)
 			{
-				//   0xFX0X
-				case 0x0000:
-					switch (opcode & 0x000F)
-					{
-						/*   0xFX07 	Sets VX to the value of the delay timer. */
-						case 0x0007:
-							VX = this->delayTimer;
-							this->ip += 2;
-						break;
-
-						/*   0xFX0A 	A key press is awaited, and then stored in VX. */
-						case 0x000A: {
-							bool keyPressed = false;
-							for (int i = 0; i < 16; ++i) {
-								if (this->keysState[i] != 0) {
-									VX = i;
-									keyPressed = true;
-								}
-							}
-
-							// If we didn't received a keypress, skip this cycle and try again.
-							if (keyPressed) {
-								this->ip += 2;
-							}
-						}
-						break;
-
-						default : Cpu_unknownOpcode (this); break;
-					}
-				break;
-
-				//   0xFX1X
-				case 0x0010:
-					switch (opcode & 0x000F)
-					{
-						/*   0xFX15 	Sets the delay timer to VX. */
-						case 0x0005:
-							this->delayTimer = VX;
-							this->ip += 2;
-						break;
-
-						/*   0xFX18 	Sets the sound timer to VX. */
-						case 0x0008:
-							this->soundTimer = VX;
-							this->ip += 2;
-						break;
-
-						/*   0xFX1E 	Adds VX to I. */
-						case 0x000E:
-							this->index += VX;
-							this->ip += 2;
-						break;
-
-						default : Cpu_unknownOpcode (this); break;
-					}
-				break;
-
-				/*   0xFX29 	Sets I to the location of the sprite for the character in VX.
-								Characters 0-F (in hexadecimal) are represented by a 4x5 font. */
-				case 0x0029:
-					this->index = VX * 5;
+				case 0x0007:
+				/*   0xFX07 	Sets VX to the value of the delay timer. */
+					VX = this->delayTimer;
 					this->ip += 2;
 				break;
 
+				case 0x000A: {
+				/*   0xFX0A 	A key press is awaited, and then stored in VX. */
+					bool keyPressed = false;
+					for (int i = 0; i < 16; ++i) {
+						if (this->keysState[i] != 0) {
+							VX = i;
+							keyPressed = true;
+						}
+					}
+
+					// Only step to the next instruction if a key has been pressed
+					if (keyPressed) {
+						this->ip += 2;
+					}
+				}
+				break;
+
+				case 0x0015:
+				/*   0xFX15 	Sets the delay timer to VX. */
+					this->delayTimer = VX;
+					this->ip += 2;
+				break;
+
+				case 0x0018:
+				/*   0xFX18 	Sets the sound timer to VX. */
+					this->soundTimer = VX;
+					this->ip += 2;
+				break;
+
+				case 0x001E:
+				/*   0xFX1E 	Adds VX to I. */
+					VF = (this->I + VX > 0xFFF)	? 1 : 0; // VF = 1 when overflow
+					this->I += VX;
+					this->ip += 2;
+				break;
+
+				case 0x0029:
+				/*   0xFX29 	Sets I to the location of the sprite for the character in VX.
+								Characters 0-F (in hexadecimal) are represented by a 4x5 font. */
+					this->I = VX * 5;
+					this->ip += 2;
+				break;
+
+
+				case 0x0033:
 				/*   0xFX33 	Stores the Binary-coded decimal representation of VX, with the most significant of three digits at the address in I,
 								the middle digit at I plus 1, and the least significant digit at I plus 2.
 								(In other words, take the decimal representation of VX, place the hundreds digit in memory at location in I,
 								the tens digit at location I+1, and the ones digit at location I+2.) */
-				case 0x0030:
-					this->memory[this->index]     =  VX / 100;
-					this->memory[this->index + 1] = (VX / 10)  % 10;
-					this->memory[this->index + 2] = (VX % 100) % 10;
+					this->memory[this->I]     =  VX / 100;
+					this->memory[this->I + 1] = (VX / 10)  % 10;
+					this->memory[this->I + 2] = (VX % 100) % 10;
 					this->ip += 2;
 				break;
 
+				case 0x0055:
 				/*   0xFX55 	Stores V0 to VX in memory starting at address I. */
-				case 0x0050:
 					for (int pos = 0; pos <= VX; pos++) {
-						this->memory[this->index + pos] = V[pos];
+						this->memory[this->I + pos] = V[pos];
 					}
-
 					// On the original interpreter, when the operation is done, I = I + X + 1.
-					this->index += VX + 1;
+					this->I += VX + 1;
 					this->ip += 2;
 				break;
 
+				case 0x0065:
 				/*   0xFX65 	Fills V0 to VX with values from memory starting at address I. */
-				case 0x0060:
 					for (int pos = 0; pos <= VX; pos++) {
-						V[pos] = this->memory[this->index + pos];
+						V[pos] = this->memory[this->I + pos];
 					}
 
 					// On the original interpreter, when the operation is done, I = I + X + 1.
-					this->index += VX + 1;
+					this->I += VX + 1;
 					this->ip += 2;
 				break;
 
-				default : Cpu_unknownOpcode (this); break;
+				default :
+					Cpu_unknownOpcode (this);
+				break;
 			}
 		break;
 
-		default : Cpu_unknownOpcode (this); break;
+		default :
+			Cpu_unknownOpcode (this);
+		break;
 	}
 
 
@@ -492,7 +486,7 @@ Cpu_unknownOpcode (
 ) {
 	dbg ("Unsupported instruction : %04X", this->opcode);
 	this->ip += 2;
-	exit(0);
+	// exit(0);
 }
 
 
@@ -528,16 +522,13 @@ void
 Cpu_loop (
 	Cpu *this
 ) {
-	sfClock *clock = sfClock_create();
-
+	// Start rendering thread
 	Graphic_startThread (this->screen);
 
 	while (this->isRunning)
 	{
 		// Emulate one CPU cycle
 		Cpu_emulateCycle (this);
-		sfTime timeCPU = sfClock_getElapsedTime(clock);
-		sfClock_restart(clock);
 
 		// Poll SFML window events
 		sfEvent event;
