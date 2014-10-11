@@ -1,28 +1,28 @@
-#include "Graphic.h"
+#include "Screen.h"
 #include <stdlib.h>
 
 // ---------- Debugging -------------
-#define __DEBUG_OBJECT__ "Graphic"
+#define __DEBUG_OBJECT__ "Screen"
 #include "dbg/dbg.h"
 
 /*
- * Description 	: Allocate a new Graphic structure.
+ * Description 	: Allocate a new Screen structure.
  * uint8_t *memory : Pointer to the emulator memory buffer
  * uint16_t *index : Pointer to the index register
- * Return 		: A pointer to an allocated Graphic.
+ * Return 		: A pointer to an allocated Screen.
  */
-Graphic *
-Graphic_new (
+Screen *
+Screen_new (
 	uint8_t *memory,
 	uint16_t *index
 ) {
-	Graphic *this;
+	Screen *this;
 
-	if ((this = calloc (1, sizeof(Graphic))) == NULL)
+	if ((this = calloc (1, sizeof(Screen))) == NULL)
 		return NULL;
 
-	if (!Graphic_init (this, memory, index)) {
-		Graphic_free (this);
+	if (!Screen_init (this, memory, index)) {
+		Screen_free (this);
 		return NULL;
 	}
 
@@ -31,15 +31,15 @@ Graphic_new (
 
 
 /*
- * Description : Initialize an allocated Graphic structure.
- * Graphic *this : An allocated Graphic to initialize.
+ * Description : Initialize an allocated Screen structure.
+ * Screen *this : An allocated Screen to initialize.
  * uint8_t *memory : Pointer to the emulator memory buffer
  * uint16_t *index : Pointer to the index register
  * Return : true on success, false on failure.
  */
 bool
-Graphic_init (
-	Graphic *this,
+Screen_init (
+	Screen *this,
 	uint8_t *memory,
 	uint16_t *index
 ) {
@@ -48,7 +48,7 @@ Graphic_init (
 	this->memory = memory;
 
 	// Clear the screen
-	Graphic_clearScreen (this);
+	Screen_clear (this);
 
 	// Update the next frame
 	this->update = true;
@@ -87,12 +87,12 @@ Graphic_init (
 
 /*
  * Description : Clear the screen
- * Graphic *this : An allocated Graphic
+ * Screen *this : An allocated Screen
  * Return : void
  */
 void
-Graphic_clearScreen (
-	Graphic *this
+Screen_clear (
+	Screen *this
 ) {
 	for (int i = 0; i < RESOLUTION_W * RESOLUTION_H; i++) {
 		Pixel_setValue (&this->pixels[i], 0);
@@ -104,12 +104,12 @@ Graphic_clearScreen (
 
 /*
  * Description : Draw the screen buffer to the user screen
- * Graphic *this : An allocated Graphic
+ * Screen *this : An allocated Screen
  * Return : void
  */
 void
-Graphic_render (
-	Graphic *this
+Screen_render (
+	Screen *this
 ) {
     // the rendering loop
     while (sfRenderWindow_isOpen(this->window))
@@ -133,27 +133,27 @@ Graphic_render (
 }
 
 /*
- * Description : Start the render thread
- * Graphic *this : An allocated Graphic
+ * Description : Start the main loop of the screen rendering in a separate thread.
+ * Screen *this : An allocated Screen
  * Return : void
  */
 void
-Graphic_startThread (
-	Graphic *this
+Screen_startThread (
+	Screen *this
 ) {
-	sfThread *thread = sfThread_create ((void (*)(void*)) Graphic_render, this);
+	sfThread *thread = sfThread_create ((void (*)(void*)) Screen_render, this);
 	sfThread_launch (thread);
 }
 
 
 /*
  * Description : Draw a sprite in the screen buffer
- * Graphic *this : An allocated Graphic
+ * Screen *this : An allocated Screen
  * Return : bool, true if a pixel changed from 1 to 0, false otherwise
  */
 bool
-Graphic_drawSprite (
-	Graphic *this,
+Screen_drawSprite (
+	Screen *this,
 	uint8_t x,
 	uint8_t y,
 	uint8_t height
@@ -195,12 +195,12 @@ Graphic_drawSprite (
 
 
 /*
- * Description : Free an allocated Graphic structure.
- * Graphic *this : An allocated Graphic to free.
+ * Description : Free an allocated Screen structure.
+ * Screen *this : An allocated Screen to free.
  */
 void
-Graphic_free (
-	Graphic *this
+Screen_free (
+	Screen *this
 ) {
 	if (this != NULL)
 	{
@@ -210,13 +210,13 @@ Graphic_free (
 
 
 /*
- * Description : Unit tests checking if a Graphic is coherent
- * Graphic *this : The instance to test
+ * Description : Unit tests checking if a Screen is coherent
+ * Screen *this : The instance to test
  * Return : true on success, false on failure
  */
 bool
-Graphic_test (
-	Graphic *this
+Screen_test (
+	Screen *this
 ) {
 
 	return true;

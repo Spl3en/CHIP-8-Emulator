@@ -3,7 +3,8 @@
 
 // ---------- Includes ------------
 #include "FontSet.h"
-#include "Graphic.h"
+#include "Screen.h"
+#include "IoManager.h"
 #include "Utils/Utils.h"
 #include "Ztring/Ztring.h"
 #include <stdint.h>
@@ -12,7 +13,6 @@
 #define MEMORY_SIZE 0x1000
 #define REGISTERS_COUNT 16
 #define STACK_SIZE 16
-#define KEYS_COUNT 16
 
 // Memory layout
 #define USER_SPACE_START_ADDRESS 0x200
@@ -52,14 +52,14 @@ typedef struct _Cpu
     uint8_t sp;
 
 	// Screen display
-    Graphic *screen;
+    Screen *screen;
+
+    // I/O manager
+    IoManager *io;
 
 	// Timers : when set above zero they will count down to zero.
 	uint8_t delayTimer;
 	uint8_t soundTimer; // The system’s buzzer sounds whenever the sound timer reaches zero.
-
-	// Keys states
-	uint8_t keysState [KEYS_COUNT];
 
 	// Running state
 	bool isRunning;
@@ -170,6 +170,28 @@ Cpu_updateTimers (
  */
 void
 Cpu_unknownOpcode (
+	Cpu *this
+);
+
+/*
+ * Description : Push an element on the stack
+ * Cpu *this : An allocated Cpu
+ * uint8_t value : the value to push
+ * Return : void
+ */
+void
+Cpu_stackPush (
+	Cpu *this,
+	uint8_t value
+);
+
+/*
+ * Description : Pop and return the value on the head of the stack
+ * Cpu *this : An allocated Cpu
+ * Return : uint8_t top byte on the stack
+ */
+uint8_t
+Cpu_stackPop (
 	Cpu *this
 );
 

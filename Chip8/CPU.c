@@ -14,7 +14,7 @@ Cpu_new (void)
 {
 	Cpu *this;
 
-	if ((this = malloc (sizeof(Cpu))) == NULL)
+	if ((this = calloc (1, sizeof(Cpu))) == NULL)
 		return NULL;
 
 	if (!Cpu_init (this)) {
@@ -47,7 +47,10 @@ Cpu_init (
 	this->ip = USER_SPACE_START_ADDRESS;
 
 	// Load screen component
-	this->screen = Graphic_new (this->memory, &this->I);
+	this->screen = Screen_new (this->memory, &this->I);
+
+	// Load I/O Manager component
+	this->io = IoManager_new ();
 
 	// The program is ready to run from this point
 	this->isRunning = true;
@@ -68,6 +71,8 @@ Cpu_loadRom (
 	char *filename
 ) {
 	int romSize;
+
+	// Read the ROM from a given file
 	char *romFile = file_get_contents_and_size (filename, &romSize);
 
 	// Check if the ROM file has been correctly read
@@ -83,7 +88,7 @@ Cpu_loadRom (
 		return false;
 	}
 
-	// ROM successfully loaded, copy it in emulator memory
+	// ROM successfully loaded, copy it into the emulator memory
 	memcpy (&this->memory[USER_SPACE_START_ADDRESS], romFile, romSize);
 
 	// Clean memory
@@ -141,6 +146,44 @@ Cpu_debug (
 
 
 /*
+ * Description : Pop and return the value on the head of the stack
+ * Cpu *this : An allocated Cpu
+ * Return : uint8_t top byte on the stack
+ */
+uint8_t
+Cpu_stackPop (
+	Cpu *this
+) {
+	if (this->sp <= 0) {
+		dbg ("Error : nothing on the stack.");
+		exit (0);
+	}
+
+	return this->stack[--this->sp];
+}
+
+
+/*
+ * Description : Push an element on the stack
+ * Cpu *this : An allocated Cpu
+ * uint8_t value : the value to push
+ * Return : void
+ */
+void
+Cpu_stackPush (
+	Cpu *this,
+	uint8_t value
+) {
+	if (this->sp >= STACK_SIZE) {
+		dbg ("Error : Stack overflow");
+		exit (0);
+	}
+
+	this->stack[this->sp++] = value;
+}
+
+
+/*
  * Description : Execute the current opcode
  * Cpu *this : An allocated Cpu
  * Return : void
@@ -164,7 +207,7 @@ Cpu_executeOpcode (
 	uint8_t *V      = this->V;
 
 	// Cpu_debug (this);
-	// Graphic_debug (this->screen);
+	// Screen_debug (this->screen);
 	// system("cls");
 
 	switch (opcode & 0xF000)
@@ -177,17 +220,14 @@ Cpu_executeOpcode (
 					{
 						case 0x00E0:
 						/*   0x00E0 	Clears the screen. */
-							Graphic_clearScreen (this->screen);
+							Screen_clear (this->screen);
 						break;
 
 						case 0x00EE:
 						/*   0x00EE 	Returns from a subroutine. */
-							// Pop the return address in ip
-							this->sp--;
-							this->ip = this->stack[this->sp];
-							this->ip += 2;
+							// Pop the return address on the stack
+							this->ip = Cpu_stackPop (this);
 						break;
-
 
 						default : Cpu_unknownOpcode (this); break;
 					}
@@ -208,9 +248,7 @@ Cpu_executeOpcode (
 		case 0x2000:
 		/*   0x2NNN 	Calls subroutine at NNN. */
 			// Push the return address on the stack
-			this->stack[this->sp] = this->ip;
-			// Update stack pointer value
-			this->sp++;
+			Cpu_stackPush (this, this->ip + 2);
 			// Jump to address NNN.
 			this->ip = _NNN;
 		break;
@@ -338,8 +376,8 @@ Cpu_executeOpcode (
 						All drawing is XOR drawing (e.g. it toggles the screen pixels)
 		*/
 			// Set VF to 1 if a pixel changed from 1 to 0
-			Cpu_debug(this);
-			VF = Graphic_drawSprite (this->screen, VX, VY, ___N);
+			Cpu_debug (this);
+			VF = Screen_drawSprite (this->screen, VX, VY, ___N);
 			this->ip += 2;
 		break;
 
@@ -348,12 +386,12 @@ Cpu_executeOpcode (
 			{
 				case 0x009E:
 				/*   0xEX9E 	Skips the next instruction if the key stored in VX is pressed. */
-					this->ip += (this->keysState[VX] != 0) ? 4 : 2;
+					this->ip += (this->io->keysState[VX] != 0) ? 4 : 2;
 				break;
 
 				case 0x00A1:
 				/*   0xEXA1 	Skips the next instruction if the key stored in VX isn't pressed. */
-					this->ip += (this->keysState[VX] == 0) ? 4 : 2;
+					this->ip += (this->io->keysState[VX] == 0) ? 4 : 2;
 				break;
 
 				default :
@@ -375,7 +413,7 @@ Cpu_executeOpcode (
 				/*   0xFX0A 	A key press is awaited, and then stored in VX. */
 					bool keyPressed = false;
 					for (int i = 0; i < 16; ++i) {
-						if (this->keysState[i] != 0) {
+						if (this->io->keysState[i] != 0) {
 							VX = i;
 							keyPressed = true;
 						}
@@ -522,22 +560,10 @@ void
 Cpu_loop (
 	Cpu *this
 ) {
-	// Start rendering thread
-	Graphic_startThread (this->screen);
-
 	while (this->isRunning)
 	{
 		// Emulate one CPU cycle
 		Cpu_emulateCycle (this);
-
-		// Poll SFML window events
-		sfEvent event;
-        while (sfRenderWindow_pollEvent (this->screen->window, &event))
-        {
-            if (event.type == sfEvtClosed) {
-                sfRenderWindow_close (this->screen->window);
-            }
-        }
 
 		// Store key press state (Press and Release)
 		Cpu_setKeys (this);
