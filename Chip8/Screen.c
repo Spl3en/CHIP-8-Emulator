@@ -108,7 +108,7 @@ Screen_clear (
  * Return : void
  */
 void
-Screen_render (
+Screen_loop (
 	Screen *this
 ) {
     // the rendering loop
@@ -141,7 +141,7 @@ void
 Screen_startThread (
 	Screen *this
 ) {
-	sfThread *thread = sfThread_create ((void (*)(void*)) Screen_render, this);
+	sfThread *thread = sfThread_create ((void (*)(void*)) Screen_loop, this);
 	sfThread_launch (thread);
 }
 

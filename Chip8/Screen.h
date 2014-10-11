@@ -121,6 +121,16 @@ Screen_startThread (
 	Screen *this
 );
 
+/*
+ * Description : Draw the screen buffer to the user screen
+ * Screen *this : An allocated Screen
+ * Return : void
+ */
+void
+Screen_loop (
+	Screen *this
+);
+
 // --------- Destructors ----------
 
 /*
