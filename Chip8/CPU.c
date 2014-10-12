@@ -209,10 +209,6 @@ Cpu_executeOpcode (
 	uint16_t opcode = this->opcode;
 	uint8_t *V      = this->V;
 
-	// Cpu_debug (this);
-	// Screen_debug (this->screen);
-	// system("cls");
-
 	switch (opcode & 0xF000)
 	{
 		case 0x0000:
@@ -379,7 +375,6 @@ Cpu_executeOpcode (
 						All drawing is XOR drawing (e.g. it toggles the screen pixels)
 		*/
 			// Set VF to 1 if a pixel changed from 1 to 0
-			// Cpu_debug (this);
 			VF = Screen_drawSprite (this->screen, VX, VY, ___N);
 			this->ip += 2;
 		break;
