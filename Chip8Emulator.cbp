@@ -37,6 +37,7 @@
 			<Add option="-DSFML_STATIC" />
 			<Add directory=".\include" />
 			<Add directory="..\" />
+			<Add directory="..\Chip8Emulator" />
 		</Compiler>
 		<Linker>
 			<Add library="lib\libcsfml-window.a" />
@@ -57,14 +58,26 @@
 			<Option compilerVar="CC" />
 		</Unit>
 		<Unit filename="Chip8\FontSet.h" />
-		<Unit filename="Chip8\Graphic.c">
+		<Unit filename="Chip8\IoManager.c">
 			<Option compilerVar="CC" />
 		</Unit>
-		<Unit filename="Chip8\Graphic.h" />
+		<Unit filename="Chip8\IoManager.h" />
 		<Unit filename="Chip8\Pixel.c">
 			<Option compilerVar="CC" />
 		</Unit>
 		<Unit filename="Chip8\Pixel.h" />
+		<Unit filename="Chip8\Screen.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="Chip8\Screen.h" />
+		<Unit filename="Profiler\Profiler.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="Profiler\Profiler.h" />
+		<Unit filename="Profiler\ProfilerFactory.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="Profiler\ProfilerFactory.h" />
 		<Unit filename="main.c">
 			<Option compilerVar="CC" />
 		</Unit>
