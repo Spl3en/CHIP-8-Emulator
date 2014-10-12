@@ -4,6 +4,7 @@
 // ---------- Includes ------------
 #include "Utils/Utils.h"
 #include "Pixel.h"
+#include "Profiler/ProfilerFactory.h"
 #include <stdint.h>
 #include <SFML/Graphics.h>
 
@@ -21,9 +22,6 @@ typedef struct _Screen
 	// Screen display buffer
 	Pixel pixels [RESOLUTION_W * RESOLUTION_H];
 
-	// true if the display need to be refreshed
-	bool update;
-
 	// Emulator CPU memory buffer shared pointer
 	uint8_t * memory;
 
@@ -32,6 +30,12 @@ typedef struct _Screen
 
 	// SFML window object
 	sfRenderWindow *window;
+
+	// Font used for displaying info
+	sfFont *font;
+
+	// Profiler for the Screen display
+	Profiler * profiler;
 
 }	Screen;
 

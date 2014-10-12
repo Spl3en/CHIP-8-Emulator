@@ -50,9 +50,6 @@ Screen_init (
 	// Clear the screen
 	Screen_clear (this);
 
-	// Update the next frame
-	this->update = true;
-
 	// Configure SFML RenderWindow
 	this->window = sfRenderWindow_create (
 		(sfVideoMode) {
@@ -71,8 +68,20 @@ Screen_init (
 		}}
 	);
 
+	// Activate vertical sync
 	sfRenderWindow_setVerticalSyncEnabled (this->window, true);
+
+	// Enable rendering in a separate thread
 	sfRenderWindow_setActive (this->window, false);
+
+	// Load from a font file on disk
+	if ((this->font = sfFont_createFromFile("verdana.ttf")) == NULL) {
+		dbg ("Font loading error.");
+		return false;
+	}
+
+	// Get a profiler
+	this->profiler = ProfilerFactory_getProfiler ("Screen");
 
 	/* Initialize the pixels array */
 	int id = 0;
@@ -97,8 +106,6 @@ Screen_clear (
 	for (int i = 0; i < RESOLUTION_W * RESOLUTION_H; i++) {
 		Pixel_setValue (&this->pixels[i], 0);
 	}
-
-	this->update = true;
 }
 
 
@@ -111,21 +118,46 @@ void
 Screen_loop (
 	Screen *this
 ) {
-    // the rendering loop
-    while (sfRenderWindow_isOpen(this->window))
+	sfEvent event;
+
+	// Information for displaying profilers
+	int profilersArraySize;
+	Profiler **profilersArray = ProfilerFactory_getArray (&profilersArraySize);
+
+    // Rendering loop
+    while (sfRenderWindow_isOpen (this->window))
     {
-		// Only refresh if the screen has been updated
-		if (this->update)
+    	// Increment frame counter
+    	Profiler_tick (this->profiler);
+
+		// Poll SFML window events
+        while (sfRenderWindow_pollEvent (this->window, &event)) {
+            if (event.type == sfEvtClosed) {
+                sfRenderWindow_close (this->window);
+            }
+        }
+
+		// Draw screen
+		for (int pos = 0; pos < RESOLUTION_H * RESOLUTION_W; pos++) {
+			Pixel *pixel = &this->pixels[pos];
+			sfRenderWindow_drawRectangleShape (this->window, pixel->rect, NULL);
+		}
+
+		// Draw profiling information
+		for (int i = 0; i < profilersArraySize; i++)
 		{
-			// Draw
-			for (int pos = 0; pos < RESOLUTION_H * RESOLUTION_W; pos++) {
-				Pixel *pixel = &this->pixels[pos];
-				sfRenderWindow_drawRectangleShape (this->window, pixel->rect, NULL);
+			Profiler *profiler = profilersArray[i];
+
+			// Compute tick per second
+			if (Profiler_getTime (profiler) >= 1.0f) {
+				Profiler_update (profiler);
+				Profiler_restart (profiler);
 			}
 
-			// Display
-			sfRenderWindow_display (this->window);
+			sfRenderWindow_drawText (this->window, profiler->text, NULL);
 		}
+
+		sfRenderWindow_display (this->window);
 
 		// Sleep a bit so the CPU doesn't burn
 		sfSleep(sfMilliseconds(1));
@@ -187,8 +219,6 @@ Screen_drawSprite (
 			}
 		}
 	}
-
-	this->update = true;
 
 	return result;
 }

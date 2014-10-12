@@ -50,10 +50,13 @@ Cpu_init (
 	this->screen = Screen_new (this->memory, &this->I);
 
 	// Load I/O Manager component
-	this->io = IoManager_new ();
+	this->io = IoManager_new (this->screen);
 
-	// The program is ready to run from this point
-	this->isRunning = true;
+	// Get a profiler
+	this->profiler = ProfilerFactory_getProfiler ("CPU");
+
+	// Default speed = 5
+	this->speed = 5;
 
 	return true;
 }
@@ -103,7 +106,7 @@ Cpu_loadRom (
  * Cpu *this : An allocated Cpu
  * Return : void
  */
-void
+inline void
 Cpu_fetchOpcode (
 	Cpu *this
 ) {
@@ -376,7 +379,7 @@ Cpu_executeOpcode (
 						All drawing is XOR drawing (e.g. it toggles the screen pixels)
 		*/
 			// Set VF to 1 if a pixel changed from 1 to 0
-			Cpu_debug (this);
+			// Cpu_debug (this);
 			VF = Screen_drawSprite (this->screen, VX, VY, ___N);
 			this->ip += 2;
 		break;
@@ -500,9 +503,6 @@ Cpu_executeOpcode (
 	// Update CPU timers
 	Cpu_updateTimers (this);
 
-	// Update the number of cycle executed
-	this->cyclesCount++;
-
 	// Clean macro namespace
 	#undef ___N
 	#undef __NN
@@ -524,7 +524,7 @@ Cpu_unknownOpcode (
 ) {
 	dbg ("Unsupported instruction : %04X", this->opcode);
 	this->ip += 2;
-	// exit(0);
+	exit(0);
 }
 
 
@@ -550,7 +550,6 @@ Cpu_updateTimers (
 	}
 }
 
-
 /*
  * Description : Main loop of the CPU.
  * Cpu *this : An allocated Cpu
@@ -560,43 +559,32 @@ void
 Cpu_loop (
 	Cpu *this
 ) {
-	while (this->isRunning)
+	while (sfRenderWindow_isOpen (this->screen->window))
 	{
+		Profiler_tick (this->profiler);
+		// cyclesCount++;
+
 		// Emulate one CPU cycle
 		Cpu_emulateCycle (this);
 
-		// Store key press state (Press and Release)
-		Cpu_setKeys (this);
-
 		// Sleep a bit so the CPU doesn't burn
-		sfSleep(sfMilliseconds(1));
+		if (this->profiler->ticksCount % this->speed == 0) {
+			sfSleep(sfSeconds(0.001));
+		}
 	}
 }
-
 
 /*
  * Description : Emulate a CPU cycle. Update internal states accordingly.
  * Cpu *this : An allocated Cpu
  * Return : void
  */
-void
+inline void
 Cpu_emulateCycle (
 	Cpu *this
 ) {
 	Cpu_fetchOpcode (this);
 	Cpu_executeOpcode (this);
-}
-
-/*
- * Description : Update all keys state
- * Cpu *this : An allocated Cpu
- * Return : void
- */
-void
-Cpu_setKeys (
-	Cpu *this
-) {
-
 }
 
 

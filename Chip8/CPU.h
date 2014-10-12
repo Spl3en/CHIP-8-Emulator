@@ -5,6 +5,7 @@
 #include "FontSet.h"
 #include "Screen.h"
 #include "IoManager.h"
+#include "Profiler/ProfilerFactory.h"
 #include "Utils/Utils.h"
 #include "Ztring/Ztring.h"
 #include <stdint.h>
@@ -61,11 +62,11 @@ typedef struct _Cpu
 	uint8_t delayTimer;
 	uint8_t soundTimer; // The system’s buzzer sounds whenever the sound timer reaches zero.
 
-	// Running state
-	bool isRunning;
+	// Profiler for the CPU
+	Profiler * profiler;
 
-	// Number of cycles since the beginning
-	uint64_t cyclesCount;
+	// CPU virtual speed
+	int speed;
 
 }	Cpu;
 
@@ -108,16 +109,6 @@ Cpu_test (
  */
 void
 Cpu_loop (
-	Cpu *this
-);
-
-/*
- * Description : Update all keys state
- * Cpu *this : An allocated Cpu
- * Return : void
- */
-void
-Cpu_setKeys (
 	Cpu *this
 );
 
