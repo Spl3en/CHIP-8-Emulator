@@ -5,9 +5,6 @@ int main (int argc, char **argv)
 	Window *window;
 	Cpu *cpu;
 
-	argc = 2;
-	argv[1] = "./games/INVADERS";
-
 	if (argc < 2) {
 		printf ("Usage : %s <game>\n", get_filename (argv[0]));
 		return 0;
