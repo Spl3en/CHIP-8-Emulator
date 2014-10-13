@@ -146,7 +146,7 @@ Window_requestBeep (void);
  * Return : keyState
  */
 KeyState
-Window_requestKeyState (
+Window_getKeyState (
     C8KeyCode code
 );
 

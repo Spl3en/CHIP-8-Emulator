@@ -199,10 +199,8 @@ Screen_drawSprite (
     bool result = false;
     uint8_t mByte;
 
-    if (x > RESOLUTION_W || y > RESOLUTION_H) {
-        dbg ("Warning : drawing out of screen : \n"
-             "(x=0x%x, max=0x%x) | (y=0x%x, max=0x%x)", x, RESOLUTION_W, y, RESOLUTION_H);
-        exit (0);
+    if (height == 0) {
+		height = 16;
     }
 
     for (int posY = 0; posY < height; posY++)
@@ -213,15 +211,22 @@ Screen_drawSprite (
         {
             if ((mByte & (0x80 >> posX)) != 0)
             {
-                Pixel *pixel = this->pixels [x + posX + ((y + posY) * RESOLUTION_W)];
+            	// Check in bound pixel
+				if ((x + posX) < RESOLUTION_W
+				&&  (y + posY) < RESOLUTION_H
+				&&  (x + posX) >= 0
+				&&  (y + posY) >= 0)
+				{
+					Pixel *pixel = this->pixels [x + posX + ((y + posY) * RESOLUTION_W)];
 
-                if (pixel->value == PIXEL_BLACK) {
-                    // A pixel changed from PIXEL_WHITE to PIXEL_BLACK
-                    result = true;
-                }
+					if (pixel->value == PIXEL_WHITE) {
+						// A pixel changed from PIXEL_WHITE to PIXEL_BLACK
+						result = true;
+					}
 
-                // Invert pixel color
-                Pixel_invertColor (pixel);
+					// Invert pixel color
+					Pixel_invertColor (pixel);
+				}
             }
         }
     }

@@ -51,7 +51,7 @@ typedef struct _Cpu
     uint16_t stack [STACK_SIZE];
 
     // Stack pointer register
-    uint16_t sp;
+    uint8_t sp;
 
     // Screen display
     Screen *screen;
@@ -223,6 +223,16 @@ Cpu_debugStack (
 void
 Cpu_debug (
     Cpu *this
+);
+
+/*
+ * Description : Disassemble in the console the current opcode
+ * Cpu *this : An allocated Cpu
+ * Return : void
+ */
+void
+Cpu_disass (
+	Cpu *this
 );
 
 /*

@@ -5,15 +5,12 @@ int main (int argc, char **argv)
     Window *window;
     Cpu *cpu;
 
-    argc = 2;
-    argv[1] = "./games/HIDDEN";
-
     if (argc < 2) {
         printf ("Usage : %s <game>\n", get_filename (argv[0]));
         return 0;
     }
 
-    // Open a new SFML Window
+    // Create a new SFML Window
     if ((window = Window_new ()) == NULL) {
         printf ("Error : Cannot open a SFML window.\n");
         return -1;

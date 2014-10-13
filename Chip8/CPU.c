@@ -170,6 +170,9 @@ Cpu_executeOpcode (
     uint16_t opcode = this->opcode;
     uint8_t *V      = this->V;
 
+    // Cpu_disass (this);
+    // Cpu_debug (this);
+
     // Set IP to the next opcode
     this->ip += INSN_SIZE;
 
@@ -191,11 +194,6 @@ Cpu_executeOpcode (
                             // Pop the return address on the stack
                             this->ip = Cpu_stackPop (this);
                         break;
-
-                        case 0x00FF:
-                        //   0x00FF     Set pixel mode ON
-						break;
-
 
                         default : Cpu_unknownOpcode (this); break;
                     }
@@ -278,13 +276,13 @@ Cpu_executeOpcode (
 
                 case 0x0004:
                 /*   0x8XY4     Adds VY to VX. VF is set to 1 when there's a carry, and to 0 when there isn't. */
-                    VF = (VY > (0xFF - VX)) ? 1 : 0; // carry
+                    VF = ((int) VX + VY) > 0xFF;
                     VX += VY;
                 break;
 
                 case 0x0005:
                 /*   0x8XY5     VY is subtracted from VX. VF is set to 0 when there's a borrow, and 1 when there isn't. */
-                    VF = (VY > VX) ? 0 : 1; // borrow
+                    VF = ((int) VX - VY) < 0;
                     VX -= VY;
                 break;
 
@@ -296,13 +294,13 @@ Cpu_executeOpcode (
 
                 case 0x0007:
                 /*   0x8XY7     Sets VX to VY minus VX. VF is set to 0 when there's a borrow, and 1 when there isn't. */
-                    VF = (VX > VY) ? 0 : 1; // borrow
+                    VF = ((int) VY - VX) < 0;
                     VX = VY - VX;
                 break;
 
                 case 0x000E:
                 /*   0x8XYE     Shifts VX left by one. VF is set to the value of the most significant bit of VX before the shift. */
-                    VF = VX >> 7;
+                    VF = VX >= 0x80;
                     VX <<= 1;
                 break;
 
@@ -331,7 +329,7 @@ Cpu_executeOpcode (
 
         case 0xC000:
         /*  CXNN     Sets VX to a random number and NN. */
-            VX = (rand() % 0xFF) & __NN;
+            VX = (rand() >> 7) & __NN;
         break;
 
         case 0xD000:
@@ -349,14 +347,14 @@ Cpu_executeOpcode (
             {
                 case 0x009E:
                 /*   0xEX9E     Skips the next instruction if the key stored in VX is pressed. */
-                    if (Window_requestKeyState (VX) == KEY_PRESSED) {
+                    if (Window_getKeyState (VX) == KEY_PRESSED) {
                     	this->ip += 2;
                     }
                 break;
 
                 case 0x00A1:
                 /*   0xEXA1     Skips the next instruction if the key stored in VX isn't pressed. */
-                    if (Window_requestKeyState (VX) == KEY_RELEASED) {
+                    if (Window_getKeyState (VX) == KEY_RELEASED) {
                     	this->ip += 2;
                     }
                 break;
@@ -378,8 +376,8 @@ Cpu_executeOpcode (
                 case 0x000A: {
                 /*   0xFX0A     A key press is awaited, and then stored in VX. */
                     bool keyPressed = false;
-                    for (C8KeyCode code = 0; code < keyCodeCount; code++) {
-                        if (Window_requestKeyState (code) == KEY_PRESSED) {
+                    for (C8KeyCode code = 0; !keyPressed && code < keyCodeCount; code++) {
+                        if (Window_getKeyState (code) == KEY_PRESSED) {
                             VX = code;
                             keyPressed = true;
                             // The CPU loop is way faster than the I/O handler one.
@@ -409,14 +407,13 @@ Cpu_executeOpcode (
 
                 case 0x001E:
                 /*   0xFX1E     Adds VX to I. */
-                    VF = (this->I + VX > 0xFFF) ? 1 : 0; // VF = 1 when overflow
                     this->I += VX;
                 break;
 
                 case 0x0029:
                 /*   0xFX29     Sets I to the location of the sprite for the character in VX.
                                 Characters 0-F (in hexadecimal) are represented by a 4x5 font. */
-                    this->I = VX * 5;
+                    this->I = 5 * (VX & 0xF);
                 break;
 
                 case 0x0033:
@@ -426,7 +423,7 @@ Cpu_executeOpcode (
                                 the tens digit at location I+1, and the ones digit at location I+2.) */
                     this->memory[this->I]     =  VX / 100;
                     this->memory[this->I + 1] = (VX / 10)  % 10;
-                    this->memory[this->I + 2] = (VX % 100) % 10;
+                    this->memory[this->I + 2] = VX % 10;
                 break;
 
                 case 0x0055:
@@ -434,8 +431,6 @@ Cpu_executeOpcode (
                     for (int pos = 0; pos <= _X__; pos++) {
                         this->memory [this->I + pos] = V[pos];
                     }
-                    // On the original interpreter, when the operation is done, I = I + X + 1.
-                    this->I += _X__ + 1;
                 break;
 
                 case 0x0065:
@@ -444,9 +439,6 @@ Cpu_executeOpcode (
                     for (int pos = 0; pos <= _X__; pos++) {
                         V[pos] = this->memory [this->I + pos];
                     }
-
-                    // On the original interpreter, when the operation is done, I = I + X + 1.
-                    this->I += _X__ + 1;
                 break;
 
                 default :
@@ -460,10 +452,6 @@ Cpu_executeOpcode (
         break;
     }
 
-
-    // Update CPU timers
-    Cpu_updateTimers (this);
-
     // Clean macro namespace
     #undef ___N
     #undef __NN
@@ -471,6 +459,190 @@ Cpu_executeOpcode (
     #undef VX
     #undef VY
     #undef VF
+}
+
+
+/*
+ * Description : Disassemble in the console the current opcode
+ * Cpu *this : An allocated Cpu
+ * Return : void
+ */
+void
+Cpu_disass (
+	Cpu *this
+) {
+    int i;
+    uint16_t opcode = this->opcode;
+
+    char v1[3] = "Vx";
+    char v2[3] = "Vx";
+    sprintf(v1, "V%X", ((opcode & 0x0F00) >> 8));
+    sprintf(v2, "V%X", ((opcode & 0x00F0) >> 4));
+
+    printf ("IP = %04X: %04X - ", this->ip, opcode);
+
+    switch (opcode>>12)
+    {
+		case 0:
+		if ((opcode&0xff0) == 0xc0) {
+			printf ("SCD  %01X       ; Scroll down n lines",opcode&0xf);
+		}
+		else switch (opcode&0xfff) {
+		case 0xe0:
+			printf ("CLS          ; Clear screen");
+			break;
+		case 0xee:
+			printf ("RET          ; Return from subroutine call");
+			break;
+		case 0xfb:
+			printf("SCR           ; Scroll right");
+			break;
+		case 0xfc:
+			printf("SCL           ; Scroll left");
+			break;
+		case 0xfd:
+			printf("EXIT          ; Terminate the interpreter");
+			break;
+		case 0xfe:
+			printf("LOW           ; Disable extended screen mode");
+			break;
+		case 0xff:
+			printf("HIGH          ; Enable extended screen mode");
+			break;
+		default:
+			printf ("SYS  %03X     ; Unknown system call",opcode&0xff);
+		}
+		break;
+		case 1:
+		printf ("JP   %03X     ; Jump to address",opcode&0xfff);
+		break;
+		case 2:
+		printf ("CALL %03X     ; Call subroutine",opcode&0xfff);
+		break;
+		case 3:
+		printf ("SE   %s,%02X   ; Skip if register == constant",v1,opcode&0xff);
+		break;
+		case 4:
+		printf ("SNE  %s,%02X   ; Skip if register <> constant",v1,opcode&0xff);
+		break;
+		case 5:
+		printf ("SE   %s,%s   ; Skip if register == register",v1,v2);
+		break;
+		case 6:
+		printf ("LD   %s,%02X   ; Set VX = Byte",v1,opcode&0xff);
+		break;
+		case 7:
+		printf ("ADD  %s,%02X   ; Set VX = VX + Byte",v1,opcode&0xff);
+		break;
+		case 8:
+		switch (opcode&0x0f) {
+		case 0:
+			printf ("LD   %s,%s   ; Set VX = VY, VF updates",v1,v2);
+			break;
+		case 1:
+			printf ("OR   %s,%s   ; Set VX = VX | VY, VF updates",v1,v2);
+			break;
+		case 2:
+			printf ("AND  %s,%s   ; Set VX = VX & VY, VF updates",v1,v2);
+			break;
+		case 3:
+			printf ("XOR  %s,%s   ; Set VX = VX ^ VY, VF updates",v1,v2);
+			break;
+		case 4:
+			printf ("ADD  %s,%s   ; Set VX = VX + VY, VF = carry",v1,v2);
+			break;
+		case 5:
+			printf ("SUB  %s,%s   ; Set VX = VX - VY, VF = !borrow",v1,v2);
+			break;
+		case 6:
+			printf ("SHR  %s,%s   ; Set VX = VX >> 1, VF = carry",v1,v2);
+			break;
+		case 7:
+			printf ("SUBN %s,%s   ; Set VX = VY - VX, VF = !borrow",v1,v2);
+			break;
+		case 14:
+			printf ("SHL  %s,%s   ; Set VX = VX << 1, VF = carry",v1,v2);
+			break;
+		default:
+			printf ("Illegal opcode");
+		}
+		break;
+		case 9:
+		printf ("SNE  %s,%s   ; Skip next instruction iv VX!=VY",v1,v2);
+		break;
+		case 10:
+		printf ("LD   I,%03X   ; Set I = Addr",opcode&0xfff);
+		break;
+		case 11:
+		printf ("JP   V0,%03X  ; Jump to Addr + V0",opcode&0xfff);
+		break;
+		case 12:
+		printf ("RND  %s,%02X   ; Set VX = random & Byte",v1,opcode&0xff);
+		break;
+		case 13:
+		printf ("DRW  %s,%s,%X ; Draw n byte sprite stored at [i] at VX,VY. Set VF = collision",v1,v2,opcode&0x0f);
+		break;
+		case 14:
+		switch (opcode&0xff) {
+		case 0x9e:
+			printf ("SKP  %s      ; Skip next instruction if key VX down",v1);
+			break;
+		case 0xa1:
+			printf ("SKNP %s      ; Skip next instruction if key VX up",v1);
+			break;
+		default:
+			printf ("%04X        ; Illegal opcode", opcode);
+		}
+		break;
+		case 15:
+		switch (opcode&0xff) {
+		case 0x07:
+			printf ("LD   %s,DT   ; Set VX = delaytimer",v1);
+			break;
+		case 0x0a:
+			printf ("LD   %s,K    ; Set VX = key, wait for keypress",v1);
+			break;
+		case 0x15:
+			printf ("LD   DT,%s   ; Set delaytimer = VX",v1);
+			break;
+		case 0x18:
+			printf ("LD   ST,%s   ; Set soundtimer = VX",v1);
+			break;
+		case 0x1e:
+			printf ("ADD  I,%s    ; Set I = I + VX",v1);
+			break;
+		case 0x29:
+			printf ("LD  LF,%s    ; Point I to 5 byte numeric sprite for value in VX",v1);
+			break;
+		case 0x30:
+			printf ("LD  HF,%s    ; Point I to 10 byte numeric sprite for value in VX",v1);
+			break;
+		case 0x33:
+			printf ("LD   B,%s    ; Store BCD of VX in [I], [I+1], [I+2]",v1);
+			break;
+		case 0x55:
+			printf ("LD   [I],%s  ; Store V0..VX in [I]..[I+X]",v1);
+			break;
+		case 0x65:
+			printf ("LD   %s,[I]  ; Read V0..VX from [I]..[I+X]",v1);
+			break;
+		case 0x75:
+			printf ("LD   R,%s    ; Store V0..VX in RPL user flags (X<=7)",v1);
+			break;
+		case 0x85:
+			printf ("LD   %s,R    ; Read V0..VX from RPL user flags (X<=7)",v1);
+			break;
+		default:
+			printf ("%04X        ; Illegal opcode", opcode);
+		}
+		break;
+    }
+
+
+    printf(" (%s = %x |", v1, this->V[((opcode & 0x0F00) >> 8)]);
+    printf("  %s = %x)",  v2, this->V[((opcode & 0x00F0) >> 4)]);
+
+    printf("\n");
 }
 
 
@@ -565,6 +737,9 @@ Cpu_loop (
 
         // Sleep a bit so the CPU doesn't burn
         if (this->profiler->ticksCount % this->speed == 0) {
+			// Update CPU timers
+			Cpu_updateTimers (this);
+
             sfSleep (sfSeconds(0.01));
         }
     }

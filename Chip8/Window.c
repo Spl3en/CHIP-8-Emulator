@@ -112,7 +112,7 @@ Window_setKeyState (
  * Return : keyState
  */
 KeyState
-Window_requestKeyState (
+Window_getKeyState (
     C8KeyCode code
 ) {
     return g_this->keysState[code];
