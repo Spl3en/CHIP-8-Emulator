@@ -16,8 +16,9 @@ typedef struct _Profiler
 {
 	unsigned int ticksCount;
 	sfClock *clock;
+
 	sfText *text;
-	char *name;
+	const char *name;
 
 	ProfilerId id;
 

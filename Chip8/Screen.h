@@ -13,20 +13,14 @@
 #define RESOLUTION_H 32
 
 // Window properties
-#define WINDOW_TITLE "CHIP-8 Emulator"
-#define WINDOW_FULLSCREEN false
+#define WINDOW_TITLE 		"CHIP-8 Emulator"
+#define WINDOW_FULLSCREEN 	false
 
 // ------ Structure declaration -------
 typedef struct _Screen
 {
 	// Screen display buffer
-	Pixel pixels [RESOLUTION_W * RESOLUTION_H];
-
-	// Emulator CPU memory buffer shared pointer
-	uint8_t * memory;
-
-	// Index register shared pointer
-	uint16_t * index;
+	Pixel * pixels [RESOLUTION_W * RESOLUTION_H];
 
 	// SFML window object
 	sfRenderWindow *window;
@@ -37,6 +31,9 @@ typedef struct _Screen
 	// Profiler for the Screen display
 	Profiler * profiler;
 
+	// Running state
+	bool isRunning;
+
 }	Screen;
 
 
@@ -44,43 +41,42 @@ typedef struct _Screen
 // --------- Allocators ---------
 
 /*
- * Description 	: Allocate a new Screen structure.
- * uint8_t *memory : Pointer to the emulator memory buffer
- * uint16_t *index : Pointer to the index register
  * Return 		: A pointer to an allocated Screen.
  */
 Screen *
-Screen_new (
-	uint8_t *memory,
-	uint16_t *index
-);
+Screen_new (void);
 
 // ----------- Functions ------------
 
 /*
  * Description : Initialize an allocated Screen structure.
  * Screen *this : An allocated Screen to initialize.
- * uint8_t *memory : Pointer to the emulator memory buffer
- * uint16_t *index : Pointer to the index register
  * Return : true on success, false on failure.
  */
 bool
 Screen_init (
-	Screen *this,
-	uint8_t *memory,
-	uint16_t *index
-);
-
-/*
- * Description : Unit tests checking if a Screen is coherent
- * Screen *this : The instance to test
- * Return : true on success, false on failure
- */
-bool
-Screen_test (
 	Screen *this
 );
 
+/*
+ * Description : Draw a sprite in the screen buffer
+ * Screen *this : An allocated Screen
+ * uint8_t x : Position X on the screen of the sprite
+ * uint8_t y : Position Y on the screen of the sprite
+ * uint8_t height : Height of the sprite
+ * uint8_t *memory : CPU memory pointer (it loads pixels from memory)
+ * uint16_t index : Index register
+ * Return : bool, true if a pixel changed from 1 to 0, false otherwise
+ */
+bool
+Screen_drawSprite (
+	Screen *this,
+	uint8_t x,
+	uint8_t y,
+	uint8_t height,
+	uint8_t *memory,
+	uint16_t index
+);
 
 /*
  * Description : Draw the screen buffer to the user screen
@@ -90,19 +86,6 @@ Screen_test (
 void
 Screen_render (
 	Screen *this
-);
-
-/*
- * Description : Draw a sprite in the screen buffer
- * Screen *this : An allocated Cpu
- * Return : bool, true if a pixel changed from 1 to 0, false otherwise
- */
-bool
-Screen_drawSprite (
-	Screen *this,
-	uint8_t x,
-	uint8_t y,
-	uint8_t height
 );
 
 /*

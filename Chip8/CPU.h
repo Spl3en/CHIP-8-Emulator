@@ -15,6 +15,7 @@
 #define REGISTERS_COUNT 16
 #define STACK_SIZE 16
 #define INSTRUCTION_BYTES_SIZE 2
+#define DEFAULT_CPU_SPEED 10
 
 // Memory layout
 #define USER_SPACE_START_ADDRESS 0x200
@@ -32,7 +33,7 @@ typedef struct _Cpu
 	// Registers state
 	uint8_t V [REGISTERS_COUNT];
 
-	// Memory buffer
+	// Virtual memory buffer
 	/*	0x000-0x1FF - CHIP-8 interpreter
 			0x050-0x0A0 - 4x5 pixel font set (0-F)
 		0x200-0xFFF - Program ROM and work RAM
@@ -69,6 +70,12 @@ typedef struct _Cpu
 	// CPU virtual speed
 	int speed;
 
+	// Running state
+	bool isRunning;
+
+	// Thread object pointer
+	sfThread *thread;
+
 }	Cpu;
 
 
@@ -90,16 +97,6 @@ Cpu_new (void);
  */
 bool
 Cpu_init (
-	Cpu *this
-);
-
-/*
- * Description : Unit tests checking if a Cpu is coherent
- * Cpu *this : The instance to test
- * Return : true on success, false on failure
- */
-bool
-Cpu_test (
 	Cpu *this
 );
 
@@ -222,6 +219,25 @@ Cpu_debug (
 	Cpu *this
 );
 
+/*
+ * Description : Start the main loop of the CPU in a separate thread.
+ * Cpu *this : An allocated Cpu
+ * Return : sfThread * Thread object pointer
+ */
+sfThread *
+Cpu_startThread (
+	Cpu *this
+);
+
+/*
+ * Description : Stop the separate thread for the CPU
+ * Cpu *this : An allocated Cpu
+ * Return : void
+ */
+void
+Cpu_stopThread (
+	Cpu *this
+);
 
 // --------- Destructors ----------
 

@@ -57,13 +57,14 @@ ProfilerFactory_getProfiler (char *name)
 
 
 /*
- * Description : Get all the profilers as an array
+ * Description : Get all the profilers as an array. Once it is called, free the queue
  * int *size : (out) size of the profiler array
  * Return : Profiler **profilersArray, array of Profiler *
  */
 Profiler **
-ProfilerFactory_getArray (int *size)
-{
+ProfilerFactory_getArray (
+	int *size
+) {
 	if (this->profilersArray == NULL)
 	{
 		// Queue to array so we have a O(1) access to profilers

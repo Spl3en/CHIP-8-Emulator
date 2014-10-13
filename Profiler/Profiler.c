@@ -83,7 +83,7 @@ Profiler_update (
 	Profiler *this
 ) {
 	unsigned char buffer[1024];
-	sprintf (buffer, "%s = %u TPS\n", this->name, this->ticksCount);
+	sprintf (buffer, "%s = %u T/s\n", this->name, this->ticksCount);
 	sfText_setString (this->text, buffer);
 }
 
@@ -136,6 +136,9 @@ Profiler_free (
 	Profiler *this
 ) {
 	if (this != NULL) {
+		sfClock_destroy (this->clock);
+		sfFont_destroy ((sfFont *) sfText_getFont (this->text));
+		sfText_destroy (this->text);
 		free (this);
 	}
 }

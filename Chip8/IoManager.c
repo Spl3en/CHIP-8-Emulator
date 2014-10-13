@@ -12,14 +12,13 @@
  */
 IoManager *
 IoManager_new (
-	Screen *screen
 ) {
 	IoManager *this;
 
 	if ((this = calloc (1, sizeof(IoManager))) == NULL)
 		return NULL;
 
-	if (!IoManager_init (this, screen)) {
+	if (!IoManager_init (this)) {
 		IoManager_free (this);
 		return NULL;
 	}
@@ -36,20 +35,19 @@ IoManager_new (
  */
 bool
 IoManager_init (
-	IoManager *this,
-	Screen *screen
+	IoManager *this
 ) {
 	// Reset keys state
 	memset(this->keysState, 0, sizeof (this->keysState));
-
-	// Get a pointer copy of the screen component
-	this->screen = screen;
 
 	// Start listening
 	this->listening = true;
 
 	// Initialize the profiler
 	this->profiler = ProfilerFactory_getProfiler ("IoManager");
+
+	// Ready state
+	this->isRunning = true;
 
 	return true;
 }
@@ -66,36 +64,42 @@ IoManager_loop (
 ) {
 	// Association CHIP-8 keycode <-> SFML KeyCode
 	sfKeyCode sfmlKeyCodes[] = {
-		[keyCode_X] = sfKeyX,
 		[keyCode_1] = sfKeyNum1,
 		[keyCode_2] = sfKeyNum2,
 		[keyCode_3] = sfKeyNum3,
+		[keyCode_4] = sfKeyNum4,
 		[keyCode_A] = sfKeyA,
 		[keyCode_Z] = sfKeyZ,
 		[keyCode_E] = sfKeyE,
+		[keyCode_R] = sfKeyR,
 		[keyCode_Q] = sfKeyQ,
 		[keyCode_S] = sfKeyS,
 		[keyCode_D] = sfKeyD,
-		[keyCode_W] = sfKeyW,
 		[keyCode_C] = sfKeyC,
-		[keyCode_4] = sfKeyNum4,
-		[keyCode_R] = sfKeyR,
+		[keyCode_W] = sfKeyW,
+		[keyCode_X] = sfKeyX,
 		[keyCode_F] = sfKeyF,
 		[keyCode_V] = sfKeyV
 	};
 
-	while (sfRenderWindow_isOpen (this->screen->window))
+	while (this->isRunning)
 	{
 		Profiler_tick (this->profiler);
-
-		if (sfKeyboard_isKeyPressed (sfKeyEscape)) {
-			// ESCAPE : Quit
-			sfRenderWindow_close (this->screen->window);
-		}
 
 		// Check if a key is pressed
 		for (int code = 0; code < keyCodeCount; code++) {
 			this->keysState[code] = sfKeyboard_isKeyPressed (sfmlKeyCodes[code]);
+		}
+
+		// Check if a beep is requested
+		if (this->beepRequest) {
+			#ifdef WIN32
+				Beep (440, 120);
+			#else
+				dbg ("Beep !");
+			#endif
+
+			this->beepRequest = false;
 		}
 
 		// Sleep a bit so the CPU doesn't burn
@@ -112,10 +116,37 @@ sfThread *
 IoManager_startThread (
 	IoManager *this
 ) {
-	sfThread *thread = sfThread_create ((void (*)(void*)) IoManager_loop, this);
-	sfThread_launch (thread);
+	this->thread = sfThread_create ((void (*)(void*)) IoManager_loop, this);
+	sfThread_launch (this->thread);
 
-	return thread;
+	return this->thread;
+}
+
+
+/*
+ * Description :
+ * IoManager *this : An allocated IoManager
+ * Return : void
+ */
+void
+IoManager_requestBeep (
+	IoManager *this
+) {
+	this->beepRequest = true;
+}
+
+
+/*
+ * Description : Stop the separate thread for the IoManager
+ * IoManager *this : An allocated IoManager
+ * Return : void
+ */
+void
+IoManager_stopThread (
+	IoManager *this
+) {
+	this->isRunning = false;
+	sfThread_wait (this->thread);
 }
 
 /*
@@ -128,20 +159,7 @@ IoManager_free (
 ) {
 	if (this != NULL)
 	{
+		Profiler_free (this->profiler);
 		free (this);
 	}
-}
-
-
-/*
- * Description : Unit tests checking if a IoManager is coherent
- * IoManager *this : The instance to test
- * Return : true on success, false on failure
- */
-bool
-IoManager_test (
-	IoManager *this
-) {
-
-	return true;
 }

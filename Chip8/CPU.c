@@ -46,18 +46,34 @@ Cpu_init (
 	this->ip = USER_SPACE_START_ADDRESS;
 
 	// Load screen component
-	this->screen = Screen_new (this->memory, &this->I);
+	this->screen = Screen_new ();
 
 	// Load I/O Manager component
-	this->io = IoManager_new (this->screen);
+	this->io = IoManager_new ();
 
 	// Get a profiler
 	this->profiler = ProfilerFactory_getProfiler ("CPU");
 
-	// Default speed = 5
-	this->speed = 5;
+	// Default speed
+	this->speed = DEFAULT_CPU_SPEED;
+
+	// Ready state
+	this->isRunning = true;
 
 	return true;
+}
+
+/*
+ * Description : Stop the separate thread for the CPU
+ * Cpu *this : An allocated Cpu
+ * Return : void
+ */
+void
+Cpu_stopThread (
+	Cpu *this
+) {
+	this->isRunning = false;
+	sfThread_wait (this->thread);
 }
 
 /*
@@ -78,13 +94,13 @@ Cpu_loadRom (
 
 	// Check if the ROM file has been correctly read
 	if (!romFile) {
-		dbg ("The ROM \"%s\" cannot be loaded.\n", filename);
+		dbg ("The ROM \"%s\" cannot be loaded.", filename);
 		return false;
 	}
 
 	// Check if the ROM file is small enough for the Chip8 memory
 	if (romSize > USER_PROGRAM_SPACE_SIZE) {
-		dbg ("The ROM \"%s\" is too big : %d bytes (max : %d bytes).\n",
+		dbg ("The ROM \"%s\" is too big : %d bytes (max : %d bytes).",
 			filename, romSize, USER_PROGRAM_SPACE_SIZE);
 		return false;
 	}
@@ -254,12 +270,13 @@ Cpu_executeOpcode (
 						case 0x00E0:
 						/*   0x00E0 	Clears the screen. */
 							Screen_clear (this->screen);
+							this->ip += 2;
 						break;
 
 						case 0x00EE:
 						/*   0x00EE 	Returns from a subroutine. */
 							// Pop the return address on the stack
-							this->ip = Cpu_stackPop (this);
+							this->ip = Cpu_stackPop (this) + INSTRUCTION_BYTES_SIZE;
 						break;
 
 						default : Cpu_unknownOpcode (this); break;
@@ -269,7 +286,7 @@ Cpu_executeOpcode (
 				default :
 				//   0x0NNN 	Calls RCA 1802 program at address NNN.
 					printf("Unhandled 0x0NNN.\n");
-					exit(0);
+					exit (0);
 				break;
 			}
 		break;
@@ -282,7 +299,7 @@ Cpu_executeOpcode (
 		case 0x2000:
 		/*   0x2NNN 	Calls subroutine at NNN. */
 			// Push the return address on the stack
-			Cpu_stackPush (this, this->ip + 2);
+			Cpu_stackPush (this, this->ip);
 			// Jump to address NNN.
 			this->ip = _NNN;
 		break;
@@ -359,6 +376,7 @@ Cpu_executeOpcode (
 				/*   0x8XY6 	Shifts VX right by one. VF is set to the value of the least significant bit of VX before the shift. */
 					VF = VX & 0x1;
 					VX >>= 1;
+					this->ip += 2;
 				break;
 
 				case 0x0007:
@@ -410,7 +428,7 @@ Cpu_executeOpcode (
 						All drawing is XOR drawing (e.g. it toggles the screen pixels)
 		*/
 			// Set VF to 1 if a pixel changed from 1 to 0
-			VF = Screen_drawSprite (this->screen, VX, VY, ___N);
+			VF = Screen_drawSprite (this->screen, VX, VY, ___N, this->memory, this->I);
 			this->ip += 2;
 		break;
 
@@ -575,7 +593,8 @@ Cpu_updateTimers (
 		this->soundTimer--;
 
 		if (this->soundTimer == 0) {
-			dbg ("Beep !");
+			dbg ("BEEP!");
+			IoManager_requestBeep (this->io);
 		}
 	}
 }
@@ -589,7 +608,7 @@ void
 Cpu_loop (
 	Cpu *this
 ) {
-	while (sfRenderWindow_isOpen (this->screen->window))
+	while (this->isRunning)
 	{
 		Profiler_tick (this->profiler);
 
@@ -618,6 +637,22 @@ Cpu_emulateCycle (
 
 
 /*
+ * Description : Start the main loop of the CPU in a separate thread.
+ * Cpu *this : An allocated Cpu
+ * Return : sfThread * Thread object pointer
+ */
+sfThread *
+Cpu_startThread (
+	Cpu *this
+) {
+	this->thread = sfThread_create ((void (*)(void*)) Cpu_loop, this);
+	sfThread_launch (this->thread);
+
+	return this->thread;
+}
+
+
+/*
  * Description : Free an allocated Cpu structure.
  * Cpu *this : An allocated Cpu to free.
  */
@@ -627,20 +662,10 @@ Cpu_free (
 ) {
 	if (this != NULL)
 	{
+		IoManager_free (this->io);
+		Screen_free (this->screen);
+		Profiler_free (this->profiler);
+		sfThread_destroy (this->thread);
 		free (this);
 	}
-}
-
-
-/*
- * Description : Unit tests checking if a Cpu is coherent
- * Cpu *this : The instance to test
- * Return : true on success, false on failure
- */
-bool
-Cpu_test (
-	Cpu *this
-) {
-
-	return true;
 }

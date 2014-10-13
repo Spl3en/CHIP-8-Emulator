@@ -19,11 +19,17 @@ typedef struct _IoManager
 	// Loop state
 	bool listening;
 
-	// IoManager is able to interact with window
-	Screen *screen;
-
 	// Profiler
 	Profiler * profiler;
+
+	// Running thread state
+	bool isRunning;
+
+	// Thread object pointer
+	sfThread *thread;
+
+	// CPU requested a beep
+	bool beepRequest;
 
 }	IoManager;
 
@@ -55,35 +61,20 @@ typedef enum {
 
 /*
  * Description 	: Allocate a new IoManager structure.
- * Screen *screen : Initialized screen component
  * Return		: A pointer to an allocated IoManager.
  */
 IoManager *
-IoManager_new (
-	Screen *screen
-);
+IoManager_new (void);
 
 // ----------- Functions ------------
 
 /*
  * Description : Initialize an allocated IoManager structure.
  * IoManager *this : An allocated IoManager to initialize.
- * Screen *screen : Initialized screen component
  * Return : true on success, false on failure.
  */
 bool
 IoManager_init (
-	IoManager *this,
-	Screen *screen
-);
-
-/*
- * Description : Unit tests checking if a IoManager is coherent
- * IoManager *this : The instance to test
- * Return : true on success, false on failure
- */
-bool
-IoManager_test (
 	IoManager *this
 );
 
@@ -98,12 +89,32 @@ IoManager_startThread (
 );
 
 /*
+ * Description : Stop the separate thread for the IoManager
+ * IoManager *this : An allocated IoManager
+ * Return : void
+ */
+void
+IoManager_stopThread (
+	IoManager *this
+);
+
+/*
  * Description :
  * IoManager *this : An allocated IoManager
  * Return : void
  */
 void
 IoManager_loop (
+	IoManager *this
+);
+
+/*
+ * Description :
+ * IoManager *this : An allocated IoManager
+ * Return : void
+ */
+void
+IoManager_requestBeep (
 	IoManager *this
 );
 

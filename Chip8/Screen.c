@@ -7,21 +7,16 @@
 
 /*
  * Description 	: Allocate a new Screen structure.
- * uint8_t *memory : Pointer to the emulator memory buffer
- * uint16_t *index : Pointer to the index register
  * Return 		: A pointer to an allocated Screen.
  */
 Screen *
-Screen_new (
-	uint8_t *memory,
-	uint16_t *index
-) {
+Screen_new (void) {
 	Screen *this;
 
 	if ((this = calloc (1, sizeof(Screen))) == NULL)
 		return NULL;
 
-	if (!Screen_init (this, memory, index)) {
+	if (!Screen_init (this)) {
 		Screen_free (this);
 		return NULL;
 	}
@@ -33,23 +28,12 @@ Screen_new (
 /*
  * Description : Initialize an allocated Screen structure.
  * Screen *this : An allocated Screen to initialize.
- * uint8_t *memory : Pointer to the emulator memory buffer
- * uint16_t *index : Pointer to the index register
  * Return : true on success, false on failure.
  */
 bool
 Screen_init (
-	Screen *this,
-	uint8_t *memory,
-	uint16_t *index
+	Screen *this
 ) {
-	// Shared pointers
-	this->index = index;
-	this->memory = memory;
-
-	// Clear the screen
-	Screen_clear (this);
-
 	// Configure SFML RenderWindow
 	this->window = sfRenderWindow_create (
 		(sfVideoMode) {
@@ -58,7 +42,7 @@ Screen_init (
 			.bitsPerPixel = 32
 		},
 		WINDOW_TITLE,
-		(WINDOW_FULLSCREEN) ? sfFullscreen : sfDefaultStyle,
+		(WINDOW_FULLSCREEN) ? sfFullscreen : sfNone,
 		(sfContextSettings[]) {{
 			.depthBits = 32,
 			.stencilBits = 8,
@@ -70,9 +54,6 @@ Screen_init (
 
 	// Activate vertical sync
 	sfRenderWindow_setVerticalSyncEnabled (this->window, true);
-
-	// Enable rendering in a separate thread
-	sfRenderWindow_setActive (this->window, false);
 
 	// Load from a font file on disk
 	if ((this->font = sfFont_createFromFile("verdana.ttf")) == NULL) {
@@ -87,9 +68,15 @@ Screen_init (
 	int id = 0;
 	for (int y = 0; y < RESOLUTION_H; y++) {
 		for (int x = 0; x < RESOLUTION_W; x++, id++) {
-			Pixel_init (&this->pixels[id], x, y);
+			this->pixels[id] = Pixel_new (x, y);
 		}
 	}
+
+	// Clear the screen
+	Screen_clear (this);
+
+	// Ready state
+	this->isRunning = true;
 
 	return true;
 }
@@ -104,7 +91,24 @@ Screen_clear (
 	Screen *this
 ) {
 	for (int i = 0; i < RESOLUTION_W * RESOLUTION_H; i++) {
-		Pixel_setValue (&this->pixels[i], 0);
+		Pixel_setValue (this->pixels[i], 0);
+	}
+}
+
+
+/*
+ * Description : Debug the screen buffer in the console
+ * Screen *this : An allocated Screen
+ * Return : void
+ */
+void Screen_debug (
+	Screen *this
+) {
+	for (int y = 0; y < RESOLUTION_H; ++y) {
+		for (int x = 0; x < RESOLUTION_W; ++x) {
+			printf ((this->pixels[(y * RESOLUTION_W) + x]->value) ? "x" : " ");
+		}
+		printf ("\n");
 	}
 }
 
@@ -125,21 +129,29 @@ Screen_loop (
 	Profiler **profilersArray = ProfilerFactory_getArray (&profilersArraySize);
 
     // Rendering loop
-    while (sfRenderWindow_isOpen (this->window))
+    while (this->isRunning)
     {
-    	// Increment frame counter
-    	Profiler_tick (this->profiler);
-
 		// Poll SFML window events
         while (sfRenderWindow_pollEvent (this->window, &event)) {
             if (event.type == sfEvtClosed) {
                 sfRenderWindow_close (this->window);
+                this->isRunning = false;
             }
         }
 
+		// Handle special key events
+		if (sfKeyboard_isKeyPressed (sfKeyEscape)) {
+			// ESCAPE : Quit
+			sfRenderWindow_close (this->window);
+            this->isRunning = false;
+		}
+
+    	// Increment frame counter
+    	Profiler_tick (this->profiler);
+
 		// Draw screen
 		for (int pos = 0; pos < RESOLUTION_H * RESOLUTION_W; pos++) {
-			Pixel *pixel = &this->pixels[pos];
+			Pixel *pixel = this->pixels[pos];
 			sfRenderWindow_drawRectangleShape (this->window, pixel->rect, NULL);
 		}
 
@@ -157,6 +169,7 @@ Screen_loop (
 			sfRenderWindow_drawText (this->window, profiler->text, NULL);
 		}
 
+		// Request display
 		sfRenderWindow_display (this->window);
 
 		// Sleep a bit so the CPU doesn't burn
@@ -183,6 +196,11 @@ Screen_startThread (
 /*
  * Description : Draw a sprite in the screen buffer
  * Screen *this : An allocated Screen
+ * uint8_t x : Position X on the screen of the sprite
+ * uint8_t y : Position Y on the screen of the sprite
+ * uint8_t height : Height of the sprite
+ * uint8_t *memory : CPU memory pointer (it loads pixels from memory)
+ * uint16_t index : Index register
  * Return : bool, true if a pixel changed from 1 to 0, false otherwise
  */
 bool
@@ -190,11 +208,12 @@ Screen_drawSprite (
 	Screen *this,
 	uint8_t x,
 	uint8_t y,
-	uint8_t height
+	uint8_t height,
+	uint8_t *memory,
+	uint16_t index
 ) {
-	uint16_t index = *this->index;
 	bool result = false;
-	uint8_t mempix;
+	uint8_t mByte;
 
 	if (x > RESOLUTION_W || y > RESOLUTION_H) {
 		dbg ("Warning : drawing out of screen : \n"
@@ -202,18 +221,14 @@ Screen_drawSprite (
 		exit (0);
 	}
 
-	for (int yline = 0; yline < height; yline++)
-	{
-		mempix = this->memory[index + yline];
+	for (int posY = 0; posY < height; posY++) {
+		mByte = memory[index + posY];
 
-		for (int xline = 0; xline < 8; xline++)
-		{
-			if ((mempix & (0x80 >> xline)) != 0)
-			{
-				Pixel *pixel = &this->pixels [x + xline + ((y + yline) * RESOLUTION_W)];
+		for (int posX = 0; posX < 8; posX++) {
+			if ((mByte & (0x80 >> posX)) != 0) {
+				Pixel *pixel = this->pixels [x + posX + ((y + posY) * RESOLUTION_W)];
 
-				if (pixel->value == 1) {
-					// A pixel changed from 1 to 0
+				if (pixel->value == 1) { // A pixel changed from 1 to 0
 					result = true;
 				}
 
@@ -236,6 +251,13 @@ Screen_free (
 ) {
 	if (this != NULL)
 	{
+		for (int i = 0; i < RESOLUTION_W * RESOLUTION_H; i++) {
+			Pixel_free (this->pixels[i]);
+		}
+
+		sfRenderWindow_destroy (this->window);
+		sfFont_destroy (this->font);
+		Profiler_free (this->profiler);
 		free (this);
 	}
 }

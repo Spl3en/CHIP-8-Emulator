@@ -66,6 +66,7 @@ Pixel_free (
 ) {
 	if (this != NULL)
 	{
+		sfRectangleShape_destroy (this->rect);
 		free (this);
 	}
 }
