@@ -243,8 +243,6 @@ Cpu_executeOpcode (
 	uint16_t opcode = this->opcode;
 	uint8_t *V      = this->V;
 
-	Cpu_debug (this);
-
 	switch (opcode & 0xF000)
 	{
 		case 0x0000:
