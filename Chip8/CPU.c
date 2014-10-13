@@ -243,6 +243,8 @@ Cpu_executeOpcode (
 	uint16_t opcode = this->opcode;
 	uint8_t *V      = this->V;
 
+	Cpu_debug (this);
+
 	switch (opcode & 0xF000)
 	{
 		case 0x0000:
@@ -259,10 +261,7 @@ Cpu_executeOpcode (
 						case 0x00EE:
 						/*   0x00EE 	Returns from a subroutine. */
 							// Pop the return address on the stack
-							// Cpu_debugStack (this);
-							// printf ("Return from subroutine : %x -> ", this->ip);
 							this->ip = Cpu_stackPop (this);
-							// printf ("%x\n", this->ip);
 						break;
 
 						default : Cpu_unknownOpcode (this); break;
@@ -285,11 +284,9 @@ Cpu_executeOpcode (
 		case 0x2000:
 		/*   0x2NNN 	Calls subroutine at NNN. */
 			// Push the return address on the stack
-			// printf ("Function called : %x / Return address : %x\n", _NNN, this->ip+2);
 			Cpu_stackPush (this, this->ip + 2);
 			// Jump to address NNN.
 			this->ip = _NNN;
-			// Cpu_debugStack (this);
 		break;
 
 		case 0x3000:
@@ -504,7 +501,7 @@ Cpu_executeOpcode (
 				case 0x0055:
 				/*   0xFX55 	Stores V0 to VX in memory starting at address I. */
 					for (int pos = 0; pos <= _X__; pos++) {
-						this->memory[this->I + pos] = V[pos];
+						this->memory [this->I + pos] = V[pos];
 					}
 					// On the original interpreter, when the operation is done, I = I + X + 1.
 					this->I += _X__ + 1;
@@ -515,7 +512,7 @@ Cpu_executeOpcode (
 
 				/*   0xFX65 	Fills V0 to VX with values from memory starting at address I. */
 					for (int pos = 0; pos <= _X__; pos++) {
-						V[pos] = this->memory[this->I + pos];
+						V[pos] = this->memory [this->I + pos];
 					}
 
 					// On the original interpreter, when the operation is done, I = I + X + 1.
@@ -580,7 +577,7 @@ Cpu_updateTimers (
 		this->soundTimer--;
 
 		if (this->soundTimer == 0) {
-			dbg ("Beep!\n");
+			dbg ("Beep !");
 		}
 	}
 }
@@ -597,7 +594,6 @@ Cpu_loop (
 	while (sfRenderWindow_isOpen (this->screen->window))
 	{
 		Profiler_tick (this->profiler);
-		// cyclesCount++;
 
 		// Emulate one CPU cycle
 		Cpu_emulateCycle (this);

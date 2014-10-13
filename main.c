@@ -11,19 +11,23 @@ int main (int argc, char **argv)
 	}
 
 	// Load a ROM into it
-	if (!Cpu_loadRom (cpu, "./games/INVADERS")) {
+	if (!Cpu_loadRom (cpu, "./games/PONG")) {
 		printf ("Error : Can't load ROM.\n");
 		return -1;
 	}
 
 	// Start i/o manager thread
-	IoManager_startThread (cpu->io);
+	sfThread * ioThread = IoManager_startThread (cpu->io);
 
 	// Start rendering thread
-	Screen_startThread (cpu->screen);
+	sfThread * screenThread = Screen_startThread (cpu->screen);
 
 	// Start CPU loop
 	Cpu_loop (cpu);
+
+	// Wait until separate threads exit gracefully
+	sfThread_wait (ioThread);
+	sfThread_wait (screenThread);
 
 	return 0;
 }

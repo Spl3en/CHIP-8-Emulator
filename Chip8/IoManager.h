@@ -90,9 +90,9 @@ IoManager_test (
 /*
  * Description : Start the main loop of the IoManager in a separate thread.
  * IoManager *this : An allocated IoManager
- * Return : void
+ * Return : sfThread * Thread object pointer
  */
-void
+sfThread *
 IoManager_startThread (
 	IoManager *this
 );

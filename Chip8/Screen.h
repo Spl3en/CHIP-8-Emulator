@@ -118,9 +118,9 @@ Screen_clear (
 /*
  * Description : Start the main loop of the screen rendering in a separate thread.
  * Screen *this : An allocated Screen
- * Return : void
+ * Return : sfThread * Thread object pointer
  */
-void
+sfThread *
 Screen_startThread (
 	Screen *this
 );

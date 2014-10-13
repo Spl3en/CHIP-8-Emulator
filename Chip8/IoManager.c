@@ -106,14 +106,16 @@ IoManager_loop (
 /*
  * Description : Start the main loop of the IoManager in a separate thread.
  * IoManager *this : An allocated IoManager
- * Return : void
+ * Return : sfThread * Thread object pointer
  */
-void
+sfThread *
 IoManager_startThread (
 	IoManager *this
 ) {
 	sfThread *thread = sfThread_create ((void (*)(void*)) IoManager_loop, this);
 	sfThread_launch (thread);
+
+	return thread;
 }
 
 /*
