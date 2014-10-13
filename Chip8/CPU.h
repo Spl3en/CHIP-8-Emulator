@@ -13,7 +13,7 @@
 #define MEMORY_SIZE 0x1000
 #define REGISTERS_COUNT 16
 #define STACK_SIZE 16
-#define INSN_SIZE sizeof(((Cpu *)0)->opcode)
+#define INSN_SIZE sizeof_structmember(Cpu, opcode)
 #define DEFAULT_CPU_SPEED 5
 
 // Memory layout
