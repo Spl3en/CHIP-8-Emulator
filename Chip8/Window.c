@@ -70,6 +70,9 @@ Window_init (
 	// Reset keys state
 	memset (this->keysState, KEY_RELEASED, sizeof (this->keysState));
 
+	// Initialize the profiler
+	this->profiler = ProfilerFactory_getProfiler ("Window");
+
 	// Ready state
 	this->isRunning = true;
 
@@ -180,6 +183,8 @@ Window_loop (
 	// Poll SFML window events
 	while (this->isRunning)
 	{
+		Profiler_tick (this->profiler);
+
         while (sfRenderWindow_pollEvent (this->sfmlWindow, &event))
         {
 			switch (event.type)

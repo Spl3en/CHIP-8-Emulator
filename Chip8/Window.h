@@ -66,6 +66,9 @@ typedef struct _Window
 	// Thread object pointer
 	sfThread *thread;
 
+	// Profiler
+	Profiler * profiler;
+
 }	Window;
 
 
