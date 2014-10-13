@@ -40,13 +40,34 @@ Cpu_init (
 	memset (this, 0, sizeof(Cpu));
 
 	// Load built-in font set into emulator memory
+	uint8_t chip8_fontset [80] = {
+		0xF0, 0x90, 0x90, 0x90, 0xF0, // 0
+		0x20, 0x60, 0x20, 0x20, 0x70, // 1
+		0xF0, 0x10, 0xF0, 0x80, 0xF0, // 2
+		0xF0, 0x10, 0xF0, 0x10, 0xF0, // 3
+		0x90, 0x90, 0xF0, 0x10, 0x10, // 4
+		0xF0, 0x80, 0xF0, 0x10, 0xF0, // 5
+		0xF0, 0x80, 0xF0, 0x90, 0xF0, // 6
+		0xF0, 0x10, 0x20, 0x40, 0x40, // 7
+		0xF0, 0x90, 0xF0, 0x90, 0xF0, // 8
+		0xF0, 0x90, 0xF0, 0x10, 0xF0, // 9
+		0xF0, 0x90, 0xF0, 0x90, 0x90, // A
+		0xE0, 0x90, 0xE0, 0x90, 0xE0, // B
+		0xF0, 0x80, 0x80, 0x80, 0xF0, // C
+		0xE0, 0x90, 0x90, 0x90, 0xE0, // D
+		0xF0, 0x80, 0xF0, 0x80, 0xF0, // E
+		0xF0, 0x80, 0xF0, 0x80, 0x80  // F
+	};
 	memcpy (&this->memory[FONT_START_ADDRESS], chip8_fontset, sizeof(chip8_fontset));
 
 	// Instruction pointer start at the start of the program
 	this->ip = USER_SPACE_START_ADDRESS;
 
 	// Get a profiler
-	this->profiler = ProfilerFactory_getProfiler ("CPU");
+	if (!(this->profiler = ProfilerFactory_getProfiler ("CPU"))) {
+		dbg ("Cannot allocate a new Profiler.");
+		return false;
+	}
 
 	// Default speed
 	this->speed = DEFAULT_CPU_SPEED;
@@ -82,12 +103,11 @@ Cpu_loadRom (
 	char *filename
 ) {
 	int romSize;
+	char *romFile;
 
 	// Read the ROM from a given file
-	char *romFile = file_get_contents_and_size (filename, &romSize);
-
 	// Check if the ROM file has been correctly read
-	if (!romFile) {
+	if (!(romFile = file_get_contents_and_size (filename, &romSize))) {
 		dbg ("The ROM \"%s\" cannot be loaded.", filename);
 		return false;
 	}
@@ -227,6 +247,7 @@ Cpu_debugStack (
 	for (int i = 0; i < STACK_SIZE; i++) {
 		printf("[%d] : %x\n", i, this->stack[i]);
 	}
+
 	printf("\n");
 }
 
@@ -279,7 +300,7 @@ Cpu_executeOpcode (
 
 				default :
 				//   0x0NNN 	Calls RCA 1802 program at address NNN.
-					printf("Unhandled 0x0NNN.\n");
+					dbg ("Unhandled 0x0NNN : Calls RCA 1802 program.");
 					exit (0);
 				break;
 			}
@@ -569,9 +590,8 @@ void
 Cpu_unknownOpcode (
 	Cpu *this
 ) {
-	dbg ("Unsupported instruction : %04X", this->opcode);
-	this->ip += INSN_SIZE;
-	exit(0);
+	dbg ("Error : Unsupported instruction %04X", this->opcode);
+	exit (0);
 }
 
 
@@ -615,7 +635,7 @@ Cpu_loop (
 
 		// Sleep a bit so the CPU doesn't burn
 		if (this->profiler->ticksCount % this->speed == 0) {
-			sfSleep(sfSeconds(0.001));
+			sfSleep (sfSeconds(0.001));
 		}
 	}
 }
@@ -643,7 +663,7 @@ sfThread *
 Cpu_startThread (
 	Cpu *this
 ) {
-	this->thread = sfThread_create ((void (*)(void*)) Cpu_loop, this);
+	this->thread = sfThread_create ((void (*)(void *)) Cpu_loop, this);
 	sfThread_launch (this->thread);
 
 	return this->thread;

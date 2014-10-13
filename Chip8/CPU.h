@@ -4,7 +4,6 @@
 // ---------- Includes ------------
 #include "Window.h"
 #include "Screen.h"
-#include "FontSet.h"
 #include "Profiler/ProfilerFactory.h"
 #include "Utils/Utils.h"
 #include "Ztring/Ztring.h"
@@ -84,7 +83,7 @@ typedef struct _Cpu
  * Return		: A pointer to an allocated Cpu.
  */
 Cpu *
-Cpu_new ();
+Cpu_new (void);
 
 // ----------- Functions ------------
 

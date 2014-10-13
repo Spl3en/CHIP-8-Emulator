@@ -11,10 +11,15 @@
 
 
 // ------ Structure declaration -------
+typedef enum {
+	PIXEL_BLACK = 0,
+	PIXEL_WHITE = 1,
+} PixelValue;
+
 typedef struct _Pixel
 {
 	sfRectangleShape *rect;
-	uint8_t value;
+	PixelValue value;
 
 } 	Pixel;
 
@@ -58,7 +63,15 @@ Pixel_test (
 	Pixel *this
 );
 
-
+/*
+ * Description : Invert the color of a given Pixel
+ * Pixel *this : An allocated Pixel
+ * Return : void
+ */
+void
+Pixel_invertColor (
+	Pixel *this
+);
 
 /*
  * Description : 	Set a new value to a pixel on the screen.
@@ -69,7 +82,7 @@ Pixel_test (
 void
 Pixel_setValue (
 	Pixel *this,
-	uint8_t value
+	PixelValue value
 );
 
 // --------- Destructors ----------

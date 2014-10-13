@@ -150,7 +150,7 @@ Window_stopThread (
 
 
 /*
- * Description :
+ * Description : Main loop handling the window events
  * Window *this : An allocated Window
  * Return : void
  */

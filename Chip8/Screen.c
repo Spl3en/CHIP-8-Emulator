@@ -40,16 +40,21 @@ Screen_init (
 	sfRenderWindow *sfmlWindow
 ) {
 	// Get a profiler
-	this->profiler = ProfilerFactory_getProfiler ("Screen");
+	if (!(this->profiler = ProfilerFactory_getProfiler ("Screen"))) {
+		dbg ("Cannot allocate a new Profiler.");
+		return false;
+	}
 
 	// Share the sfmlWindow pointer
 	this->window = sfmlWindow;
 
 	/* Initialize the pixels array */
-	int id = 0;
-	for (int y = 0; y < RESOLUTION_H; y++) {
+	for (int y = 0, id = 0; y < RESOLUTION_H; y++) {
 		for (int x = 0; x < RESOLUTION_W; x++, id++) {
-			this->pixels[id] = Pixel_new (x, y);
+			if (!(this->pixels[id] = Pixel_new (x, y))) {
+				dbg ("Cannot allocate a new Pixel.");
+				return false;
+			}
 		}
 	}
 
@@ -72,7 +77,7 @@ Screen_clear (
 	Screen *this
 ) {
 	for (int i = 0; i < RESOLUTION_W * RESOLUTION_H; i++) {
-		Pixel_setValue (this->pixels[i], 0);
+		Pixel_setValue (this->pixels[i], PIXEL_BLACK);
 	}
 }
 
@@ -87,12 +92,11 @@ void Screen_debug (
 ) {
 	for (int y = 0; y < RESOLUTION_H; ++y) {
 		for (int x = 0; x < RESOLUTION_W; ++x) {
-			printf ((this->pixels[(y * RESOLUTION_W) + x]->value) ? "x" : " ");
+			printf ((this->pixels[(y * RESOLUTION_W) + x]->value == PIXEL_WHITE) ? "x" : " ");
 		}
 		printf ("\n");
 	}
 }
-
 
 
 /*
@@ -144,6 +148,7 @@ Screen_loop (
 	// Request to close the window
 	sfRenderWindow_close (this->window);
 }
+
 
 /*
  * Description : Start the main loop of the screen rendering in a separate thread.
@@ -200,18 +205,23 @@ Screen_drawSprite (
 		exit (0);
 	}
 
-	for (int posY = 0; posY < height; posY++) {
+	for (int posY = 0; posY < height; posY++)
+	{
 		mByte = memory[index + posY];
 
-		for (int posX = 0; posX < 8; posX++) {
-			if ((mByte & (0x80 >> posX)) != 0) {
+		for (int posX = 0; posX < 8; posX++)
+		{
+			if ((mByte & (0x80 >> posX)) != 0)
+			{
 				Pixel *pixel = this->pixels [x + posX + ((y + posY) * RESOLUTION_W)];
 
-				if (pixel->value == 1) { // A pixel changed from 1 to 0
+				if (pixel->value == PIXEL_BLACK) {
+					// A pixel changed from PIXEL_WHITE to PIXEL_BLACK
 					result = true;
 				}
 
-				Pixel_setValue (pixel, pixel->value ^ 1);
+				// Invert pixel color
+				Pixel_invertColor (pixel);
 			}
 		}
 	}

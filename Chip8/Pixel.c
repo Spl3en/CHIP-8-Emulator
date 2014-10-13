@@ -46,7 +46,7 @@ Pixel_init (
 		return false;
 	}
 
-	this->value = 0;
+	this->value = PIXEL_BLACK;
 
 	sfRectangleShape_setPosition  (this->rect, (sfVector2f) {.x = PIXEL_SIZE * x, .y = PIXEL_SIZE * y});
 	sfRectangleShape_setSize      (this->rect, (sfVector2f) {.x = PIXEL_SIZE, .y = PIXEL_SIZE});
@@ -73,19 +73,33 @@ Pixel_free (
 
 
 /*
+ * Description : Invert the color of a given Pixel
+ * Pixel *this : An allocated Pixel
+ * Return : void
+ */
+void
+Pixel_invertColor (
+	Pixel *this
+) {
+	Pixel_setValue (this, (this->value == PIXEL_WHITE) ? PIXEL_BLACK : PIXEL_WHITE);
+}
+
+
+/*
  * Description : 	Set a new value to a pixel on the screen.
 					If its value doesn't change, do nothing.
  * Pixel *this : An allocated Pixel
+ * PixelValue value : The new pixel value
  * Return : void
  */
 void
 Pixel_setValue (
 	Pixel *this,
-	uint8_t value
+	PixelValue value
 ) {
 	if (this->value != value) {
 		this->value = value;
-		sfRectangleShape_setFillColor (this->rect, (value) ? sfWhite : sfBlack);
+		sfRectangleShape_setFillColor (this->rect, (value == PIXEL_WHITE) ? sfWhite : sfBlack);
 	}
 }
 
