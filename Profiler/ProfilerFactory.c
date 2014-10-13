@@ -8,27 +8,27 @@
 // Private structure declaration
 struct _ProfilerFactory
 {
-	BbQueue  *profilersQueue;	// The queue receive all the profilers
-	Profiler **profilersArray;	// The array is created from the queue once all the profilers have been received
-	int profilersArraySize;
+    BbQueue  *profilersQueue;    // The queue receive all the profilers
+    Profiler **profilersArray;    // The array is created from the queue once all the profilers have been received
+    int profilersArraySize;
 
-	// Singleton
+    // Singleton
 } * this = NULL;
 
 /*
- * Description 	: Allocate and initialize a new ProfilerFactory structure.
- * Return		: bool, true on success, false otherwise
+ * Description     : Allocate and initialize a new ProfilerFactory structure.
+ * Return        : bool, true on success, false otherwise
  */
 bool
 ProfilerFactory_init (void)
 {
-	if ((this = calloc (1, sizeof(ProfilerFactory))) == NULL)
-		return false;
+    if ((this = calloc (1, sizeof(ProfilerFactory))) == NULL)
+        return false;
 
-	this->profilersQueue = bb_queue_new ();
-	this->profilersArray = NULL;
+    this->profilersQueue = bb_queue_new ();
+    this->profilersArray = NULL;
 
-	return true;
+    return true;
 }
 
 
@@ -39,20 +39,20 @@ ProfilerFactory_init (void)
 Profiler *
 ProfilerFactory_getProfiler (char *name)
 {
-	if (!this) {
-		ProfilerFactory_init ();
-	}
+    if (!this) {
+        ProfilerFactory_init ();
+    }
 
-	// Get a new Profiler ID
-	ProfilerId id = bb_queue_get_length (this->profilersQueue);
+    // Get a new Profiler ID
+    ProfilerId id = bb_queue_get_length (this->profilersQueue);
 
-	// Instantiate a new profiler
-	Profiler *profiler = Profiler_new (id, name);
+    // Instantiate a new profiler
+    Profiler *profiler = Profiler_new (id, name);
 
-	// Add it to the queue of profilers
-	bb_queue_add (this->profilersQueue, profiler);
+    // Add it to the queue of profilers
+    bb_queue_add (this->profilersQueue, profiler);
 
-	return profiler;
+    return profiler;
 }
 
 
@@ -63,28 +63,28 @@ ProfilerFactory_getProfiler (char *name)
  */
 Profiler **
 ProfilerFactory_getArray (
-	int *size
+    int *size
 ) {
-	if (this->profilersArray == NULL)
-	{
-		// Queue to array so we have a O(1) access to profilers
-		this->profilersArraySize = bb_queue_get_length (this->profilersQueue);
-		this->profilersArray = malloc (sizeof(Profiler *) * this->profilersArraySize);
+    if (this->profilersArray == NULL)
+    {
+        // Queue to array so we have a O(1) access to profilers
+        this->profilersArraySize = bb_queue_get_length (this->profilersQueue);
+        this->profilersArray = malloc (sizeof(Profiler *) * this->profilersArraySize);
 
-		while (bb_queue_get_length (this->profilersQueue))
-		{
-			Profiler *profiler = bb_queue_pop (this->profilersQueue);
-			ProfilerId id = profiler->id;
-			this->profilersArray[id] = profiler;
-		}
+        while (bb_queue_get_length (this->profilersQueue))
+        {
+            Profiler *profiler = bb_queue_pop (this->profilersQueue);
+            ProfilerId id = profiler->id;
+            this->profilersArray[id] = profiler;
+        }
 
-		// Clean queue memory
-		bb_queue_free (this->profilersQueue);
-		this->profilersQueue = NULL;
-	}
+        // Clean queue memory
+        bb_queue_free (this->profilersQueue);
+        this->profilersQueue = NULL;
+    }
 
-	*size = this->profilersArraySize;
-	return this->profilersArray;
+    *size = this->profilersArraySize;
+    return this->profilersArray;
 }
 
 
@@ -96,12 +96,12 @@ ProfilerFactory_getArray (
  */
 void
 ProfilerFactory_free (
-	ProfilerFactory *this
+    ProfilerFactory *this
 ) {
-	if (this != NULL)
-	{
-		free (this);
-	}
+    if (this != NULL)
+    {
+        free (this);
+    }
 }
 
 
@@ -112,8 +112,8 @@ ProfilerFactory_free (
  */
 bool
 ProfilerFactory_test (
-	ProfilerFactory *this
+    ProfilerFactory *this
 ) {
 
-	return true;
+    return true;
 }

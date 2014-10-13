@@ -11,73 +11,73 @@
 #define KEYS_COUNT 16
 
 // Window properties
-#define WINDOW_TITLE 		"CHIP-8 Emulator"
-#define WINDOW_FULLSCREEN 	false
+#define WINDOW_TITLE         "CHIP-8 Emulator"
+#define WINDOW_FULLSCREEN     false
 
 
 // ------ Structure declaration -------
 
 /*
- *	Key associated with each keycode
+ *    Key associated with each keycode
  */
 typedef enum {
-	keyCode_X = 0x0,
-	keyCode_1 = 0x1,
-	keyCode_2 = 0x2,
-	keyCode_3 = 0x3,
-	keyCode_A = 0x4,
-	keyCode_Z = 0x5,
-	keyCode_E = 0x6,
-	keyCode_Q = 0x7,
-	keyCode_S = 0x8,
-	keyCode_D = 0x9,
-	keyCode_W = 0xA,
-	keyCode_C = 0xB,
-	keyCode_4 = 0xC,
-	keyCode_R = 0xD,
-	keyCode_F = 0xE,
-	keyCode_V = 0xF,
+    keyCode_X = 0x0,
+    keyCode_1 = 0x1,
+    keyCode_2 = 0x2,
+    keyCode_3 = 0x3,
+    keyCode_A = 0x4,
+    keyCode_Z = 0x5,
+    keyCode_E = 0x6,
+    keyCode_Q = 0x7,
+    keyCode_S = 0x8,
+    keyCode_D = 0x9,
+    keyCode_W = 0xA,
+    keyCode_C = 0xB,
+    keyCode_4 = 0xC,
+    keyCode_R = 0xD,
+    keyCode_F = 0xE,
+    keyCode_V = 0xF,
 
-	keyCodeCount // Always at the end
+    keyCodeCount // Always at the end
 } C8KeyCode;
 
 typedef enum {
 
-	KEY_RELEASED,
-	KEY_PRESSED,
-	KEY_PUSHED
+    KEY_RELEASED,
+    KEY_PRESSED,
+    KEY_PUSHED
 
 } KeyState;
 
 typedef struct _Window
 {
-	// SFML window object
-	sfRenderWindow *sfmlWindow;
+    // SFML window object
+    sfRenderWindow *sfmlWindow;
 
-	// Keys states
-	uint8_t keysState [KEYS_COUNT];
+    // Keys states
+    uint8_t keysState [KEYS_COUNT];
 
-	// Running state
-	bool isRunning;
+    // Running state
+    bool isRunning;
 
-	// Flag true if CPU requested a beep
-	bool beepRequest;
+    // Flag true if CPU requested a beep
+    bool beepRequest;
 
-	// Thread object pointer
-	sfThread *thread;
+    // Thread object pointer
+    sfThread *thread;
 
-	// Profiler
-	Profiler * profiler;
+    // Profiler
+    Profiler * profiler;
 
-}	Window;
+}    Window;
 
 
 
 // --------- Allocators ---------
 
 /*
- * Description 	: Allocate a new Window structure.
- * Return		: A pointer to an allocated Window.
+ * Description     : Allocate a new Window structure.
+ * Return        : A pointer to an allocated Window.
  */
 Window *
 Window_new (void);
@@ -90,7 +90,7 @@ Window_new (void);
  */
 bool
 Window_init (
-	Window *this
+    Window *this
 );
 
 /*
@@ -100,7 +100,7 @@ Window_init (
  */
 bool
 Window_test (
-	Window *this
+    Window *this
 );
 
 /*
@@ -110,7 +110,7 @@ Window_test (
  */
 void
 Window_loop (
-	Window *this
+    Window *this
 );
 
 /*
@@ -120,7 +120,7 @@ Window_loop (
  */
 void
 Window_stopThread (
-	Window *this
+    Window *this
 );
 
 /*
@@ -130,7 +130,7 @@ Window_stopThread (
  */
 sfThread *
 Window_startThread (
-	Window *this
+    Window *this
 );
 
 /*
@@ -147,7 +147,7 @@ Window_requestBeep (void);
  */
 KeyState
 Window_requestKeyState (
-	C8KeyCode code
+    C8KeyCode code
 );
 
 /*
@@ -158,8 +158,8 @@ Window_requestKeyState (
  */
 void
 Window_setKeyState (
-	C8KeyCode code,
-	KeyState state
+    C8KeyCode code,
+    KeyState state
 );
 
 // --------- Destructors ----------
@@ -170,7 +170,7 @@ Window_setKeyState (
  */
 void
 Window_free (
-	Window *this
+    Window *this
 );
 
 

@@ -31,7 +31,7 @@ ProfilerFactory_init (void);
  */
 bool
 ProfilerFactory_test (
-	ProfilerFactory *this
+    ProfilerFactory *this
 );
 
 /*
@@ -41,7 +41,7 @@ ProfilerFactory_test (
  */
 Profiler *
 ProfilerFactory_getProfiler (
-	char *name
+    char *name
 );
 
 /*
@@ -51,7 +51,7 @@ ProfilerFactory_getProfiler (
  */
 Profiler **
 ProfilerFactory_getArray (
-	int *size
+    int *size
 );
 
 // --------- Destructors ----------
@@ -62,7 +62,7 @@ ProfilerFactory_getArray (
  */
 void
 ProfilerFactory_free (
-	ProfilerFactory *this
+    ProfilerFactory *this
 );
 
 

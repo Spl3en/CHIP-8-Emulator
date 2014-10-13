@@ -26,61 +26,61 @@
 // ------ Structure declaration -------
 typedef struct _Cpu
 {
-	// All opcodes are coded on 16 bits
-	uint16_t opcode;
+    // All opcodes are coded on 16 bits
+    uint16_t opcode;
 
-	// Registers state
-	uint8_t V [REGISTERS_COUNT];
+    // Registers state
+    uint8_t V [REGISTERS_COUNT];
 
-	// Virtual memory buffer
-	/*	0x000-0x1FF - CHIP-8 interpreter
-			0x050-0x0A0 - 4x5 pixel font set (0-F)
-		0x200-0xFFF - Program ROM and work RAM
-			0xEA0-0XEFF - Call stack, internal use, and other variables.
-			0xF00-0xFFF - Display refresh
-	*/
-	uint8_t memory [MEMORY_SIZE];
+    // Virtual memory buffer
+    /*    0x000-0x1FF - CHIP-8 interpreter
+            0x050-0x0A0 - 4x5 pixel font set (0-F)
+        0x200-0xFFF - Program ROM and work RAM
+            0xEA0-0XEFF - Call stack, internal use, and other variables.
+            0xF00-0xFFF - Display refresh
+    */
+    uint8_t memory [MEMORY_SIZE];
 
-	// Index register
-	uint16_t I;
+    // Index register
+    uint16_t I;
 
-	// Instruction pointer register
-	uint16_t ip;
+    // Instruction pointer register
+    uint16_t ip;
 
-	// Stack memory buffer
+    // Stack memory buffer
     uint16_t stack [STACK_SIZE];
 
     // Stack pointer register
     uint16_t sp;
 
-	// Screen display
+    // Screen display
     Screen *screen;
 
-	// Timers : when set above zero they will count down to zero.
-	uint8_t delayTimer;
-	uint8_t soundTimer; // The system’s buzzer sounds whenever the sound timer reaches zero.
+    // Timers : when set above zero they will count down to zero.
+    uint8_t delayTimer;
+    uint8_t soundTimer; // The system’s buzzer sounds whenever the sound timer reaches zero.
 
-	// Profiler for the CPU
-	Profiler * profiler;
+    // Profiler for the CPU
+    Profiler * profiler;
 
-	// CPU virtual speed
-	int speed;
+    // CPU virtual speed
+    int speed;
 
-	// Running state
-	bool isRunning;
+    // Running state
+    bool isRunning;
 
-	// Thread object pointer
-	sfThread *thread;
+    // Thread object pointer
+    sfThread *thread;
 
-}	Cpu;
+}    Cpu;
 
 
 
 // --------- Allocators ---------
 
 /*
- * Description 	: Allocate a new Cpu structure.
- * Return		: A pointer to an allocated Cpu.
+ * Description     : Allocate a new Cpu structure.
+ * Return        : A pointer to an allocated Cpu.
  */
 Cpu *
 Cpu_new (void);
@@ -93,7 +93,7 @@ Cpu_new (void);
  */
 bool
 Cpu_init (
-	Cpu *this
+    Cpu *this
 );
 
 /*
@@ -103,7 +103,7 @@ Cpu_init (
  */
 void
 Cpu_loop (
-	Cpu *this
+    Cpu *this
 );
 
 /*
@@ -113,7 +113,17 @@ Cpu_loop (
  */
 void
 Cpu_emulateCycle (
-	Cpu *this
+    Cpu *this
+);
+
+/*
+ * Description : Execute the current opcode
+ * Cpu *this : An allocated Cpu
+ * Return : void
+ */
+void
+Cpu_executeOpcode (
+    Cpu *this
 );
 
 /*
@@ -124,8 +134,8 @@ Cpu_emulateCycle (
  */
 bool
 Cpu_loadRom (
-	Cpu *this,
-	char *filename
+    Cpu *this,
+    char *filename
 );
 
 /*
@@ -136,8 +146,8 @@ Cpu_loadRom (
  */
 uint16_t
 Cpu_fetchOpcode (
-	Cpu *this,
-	uint16_t ip
+    Cpu *this,
+    uint16_t ip
 );
 
 /*
@@ -147,7 +157,7 @@ Cpu_fetchOpcode (
  */
 void
 Cpu_updateTimers (
-	Cpu *this
+    Cpu *this
 );
 
 /*
@@ -157,7 +167,7 @@ Cpu_updateTimers (
  */
 void
 Cpu_unknownOpcode (
-	Cpu *this
+    Cpu *this
 );
 
 /*
@@ -168,8 +178,8 @@ Cpu_unknownOpcode (
  */
 void
 Cpu_stackPush (
-	Cpu *this,
-	uint16_t value
+    Cpu *this,
+    uint16_t value
 );
 
 /*
@@ -179,7 +189,7 @@ Cpu_stackPush (
  */
 uint16_t
 Cpu_stackPop (
-	Cpu *this
+    Cpu *this
 );
 
 /*
@@ -191,8 +201,8 @@ truction
  */
 uint16_t
 Cpu_getPreviousOpCode (
-	Cpu *this,
-	uint16_t ip
+    Cpu *this,
+    uint16_t ip
 );
 
 /*
@@ -202,7 +212,7 @@ Cpu_getPreviousOpCode (
  */
 void
 Cpu_debugStack (
-	Cpu *this
+    Cpu *this
 );
 
 /*
@@ -212,7 +222,7 @@ Cpu_debugStack (
  */
 void
 Cpu_debug (
-	Cpu *this
+    Cpu *this
 );
 
 /*
@@ -222,7 +232,7 @@ Cpu_debug (
  */
 sfThread *
 Cpu_startThread (
-	Cpu *this
+    Cpu *this
 );
 
 /*
@@ -232,7 +242,7 @@ Cpu_startThread (
  */
 void
 Cpu_stopThread (
-	Cpu *this
+    Cpu *this
 );
 
 // --------- Destructors ----------
@@ -243,7 +253,7 @@ Cpu_stopThread (
  */
 void
 Cpu_free (
-	Cpu *this
+    Cpu *this
 );
 
 

@@ -14,35 +14,35 @@
 // ------ Structure declaration -------
 typedef struct _Screen
 {
-	// Screen display buffer
-	Pixel * pixels [RESOLUTION_W * RESOLUTION_H];
+    // Screen display buffer
+    Pixel * pixels [RESOLUTION_W * RESOLUTION_H];
 
-	// SFML window object shared with Window
-	sfRenderWindow *window;
+    // SFML window object shared with Window
+    sfRenderWindow *window;
 
-	// Profiler for the Screen display
-	Profiler * profiler;
+    // Profiler for the Screen display
+    Profiler * profiler;
 
-	// Running state
-	bool isRunning;
+    // Running state
+    bool isRunning;
 
-	// Thread object pointer
-	sfThread *thread;
+    // Thread object pointer
+    sfThread *thread;
 
-}	Screen;
+}    Screen;
 
 
 
 // --------- Allocators ---------
 
 /*
- * Description 	: Allocate a new Screen structure.
+ * Description     : Allocate a new Screen structure.
  * sfRenderWindow *sfmlWindow : A SFML render window context
- * Return 		: A pointer to an allocated Screen.
+ * Return         : A pointer to an allocated Screen.
  */
 Screen *
 Screen_new (
-	sfRenderWindow *sfmlWindow
+    sfRenderWindow *sfmlWindow
 );
 
 // ----------- Functions ------------
@@ -55,8 +55,8 @@ Screen_new (
  */
 bool
 Screen_init (
-	Screen *this,
-	sfRenderWindow *sfmlWindow
+    Screen *this,
+    sfRenderWindow *sfmlWindow
 );
 
 /*
@@ -71,12 +71,12 @@ Screen_init (
  */
 bool
 Screen_drawSprite (
-	Screen *this,
-	uint8_t x,
-	uint8_t y,
-	uint8_t height,
-	uint8_t *memory,
-	uint16_t index
+    Screen *this,
+    uint8_t x,
+    uint8_t y,
+    uint8_t height,
+    uint8_t *memory,
+    uint16_t index
 );
 
 /*
@@ -86,7 +86,7 @@ Screen_drawSprite (
  */
 void
 Screen_render (
-	Screen *this
+    Screen *this
 );
 
 /*
@@ -96,7 +96,7 @@ Screen_render (
  */
 void
 Screen_clear (
-	Screen *this
+    Screen *this
 );
 
 /*
@@ -105,7 +105,7 @@ Screen_clear (
  */
 void
 Screen_startThread (
-	Screen *this
+    Screen *this
 );
 
 /*
@@ -115,7 +115,7 @@ Screen_startThread (
  */
 void
 Screen_stopThread (
-	Screen *this
+    Screen *this
 );
 
 /*
@@ -125,7 +125,7 @@ Screen_stopThread (
  */
 void
 Screen_loop (
-	Screen *this
+    Screen *this
 );
 
 // --------- Destructors ----------
@@ -136,7 +136,7 @@ Screen_loop (
  */
 void
 Screen_free (
-	Screen *this
+    Screen *this
 );
 
 

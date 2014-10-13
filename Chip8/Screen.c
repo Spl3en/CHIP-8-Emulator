@@ -6,25 +6,25 @@
 #include "dbg/dbg.h"
 
 /*
- * Description 	: Allocate a new Screen structure.
+ * Description     : Allocate a new Screen structure.
  * sfRenderWindow *sfmlWindow : A SFML render window context
- * Return 		: A pointer to an allocated Screen.
+ * Return         : A pointer to an allocated Screen.
  */
 Screen *
 Screen_new (
-	sfRenderWindow *sfmlWindow
+    sfRenderWindow *sfmlWindow
 ) {
-	Screen *this;
+    Screen *this;
 
-	if ((this = calloc (1, sizeof(Screen))) == NULL)
-		return NULL;
+    if ((this = calloc (1, sizeof(Screen))) == NULL)
+        return NULL;
 
-	if (!Screen_init (this, sfmlWindow)) {
-		Screen_free (this);
-		return NULL;
-	}
+    if (!Screen_init (this, sfmlWindow)) {
+        Screen_free (this);
+        return NULL;
+    }
 
-	return this;
+    return this;
 }
 
 
@@ -36,35 +36,35 @@ Screen_new (
  */
 bool
 Screen_init (
-	Screen *this,
-	sfRenderWindow *sfmlWindow
+    Screen *this,
+    sfRenderWindow *sfmlWindow
 ) {
-	// Get a profiler
-	if (!(this->profiler = ProfilerFactory_getProfiler ("Screen"))) {
-		dbg ("Cannot allocate a new Profiler.");
-		return false;
-	}
+    // Get a profiler
+    if (!(this->profiler = ProfilerFactory_getProfiler ("Screen"))) {
+        dbg ("Cannot allocate a new Profiler.");
+        return false;
+    }
 
-	// Share the sfmlWindow pointer
-	this->window = sfmlWindow;
+    // Share the sfmlWindow pointer
+    this->window = sfmlWindow;
 
-	/* Initialize the pixels array */
-	for (int y = 0, id = 0; y < RESOLUTION_H; y++) {
-		for (int x = 0; x < RESOLUTION_W; x++, id++) {
-			if (!(this->pixels[id] = Pixel_new (x, y))) {
-				dbg ("Cannot allocate a new Pixel.");
-				return false;
-			}
-		}
-	}
+    // Initialize the pixels array
+    for (int y = 0, id = 0; y < RESOLUTION_H; y++) {
+        for (int x = 0; x < RESOLUTION_W; x++, id++) {
+            if (!(this->pixels[id] = Pixel_new (x, y))) {
+                dbg ("Cannot allocate a new Pixel.");
+                return false;
+            }
+        }
+    }
 
-	// Clear the screen
-	Screen_clear (this);
+    // Clear the screen
+    Screen_clear (this);
 
-	// Ready state
-	this->isRunning = true;
+    // Ready state
+    this->isRunning = true;
 
-	return true;
+    return true;
 }
 
 /*
@@ -74,11 +74,11 @@ Screen_init (
  */
 void
 Screen_clear (
-	Screen *this
+    Screen *this
 ) {
-	for (int i = 0; i < RESOLUTION_W * RESOLUTION_H; i++) {
-		Pixel_setValue (this->pixels[i], PIXEL_BLACK);
-	}
+    for (int i = 0; i < RESOLUTION_W * RESOLUTION_H; i++) {
+        Pixel_setValue (this->pixels[i], PIXEL_BLACK);
+    }
 }
 
 
@@ -88,14 +88,14 @@ Screen_clear (
  * Return : void
  */
 void Screen_debug (
-	Screen *this
+    Screen *this
 ) {
-	for (int y = 0; y < RESOLUTION_H; ++y) {
-		for (int x = 0; x < RESOLUTION_W; ++x) {
-			printf ((this->pixels[(y * RESOLUTION_W) + x]->value == PIXEL_WHITE) ? "x" : " ");
-		}
-		printf ("\n");
-	}
+    for (int y = 0; y < RESOLUTION_H; ++y) {
+        for (int x = 0; x < RESOLUTION_W; ++x) {
+            printf ((this->pixels[(y * RESOLUTION_W) + x]->value == PIXEL_WHITE) ? "x" : " ");
+        }
+        printf ("\n");
+    }
 }
 
 
@@ -106,47 +106,47 @@ void Screen_debug (
  */
 void
 Screen_loop (
-	Screen *this
+    Screen *this
 ) {
-	// Information for displaying profilers
-	int profilersArraySize;
-	Profiler **profilersArray = ProfilerFactory_getArray (&profilersArraySize);
+    // Information for displaying profilers
+    int profilersArraySize;
+    Profiler **profilersArray = ProfilerFactory_getArray (&profilersArraySize);
 
     // Rendering loop
     while (this->isRunning)
     {
-    	// Increment frame counter
-    	Profiler_tick (this->profiler);
+        // Increment frame counter
+        Profiler_tick (this->profiler);
 
-		// Draw screen
-		for (int pos = 0; pos < RESOLUTION_H * RESOLUTION_W; pos++) {
-			Pixel *pixel = this->pixels[pos];
-			sfRenderWindow_drawRectangleShape (this->window, pixel->rect, NULL);
-		}
+        // Draw screen
+        for (int pos = 0; pos < RESOLUTION_H * RESOLUTION_W; pos++) {
+            Pixel *pixel = this->pixels[pos];
+            sfRenderWindow_drawRectangleShape (this->window, pixel->rect, NULL);
+        }
 
-		// Draw profiling information
-		for (int i = 0; i < profilersArraySize; i++)
-		{
-			Profiler *profiler = profilersArray[i];
+        // Draw profiling information
+        for (int i = 0; i < profilersArraySize; i++)
+        {
+            Profiler *profiler = profilersArray[i];
 
-			// Compute tick per second
-			if (Profiler_getTime (profiler) >= 1.0f) {
-				Profiler_update (profiler);
-				Profiler_restart (profiler);
-			}
+            // Compute tick per second
+            if (Profiler_getTime (profiler) >= 1.0f) {
+                Profiler_update (profiler);
+                Profiler_restart (profiler);
+            }
 
-			sfRenderWindow_drawText (this->window, profiler->text, NULL);
-		}
+            sfRenderWindow_drawText (this->window, profiler->text, NULL);
+        }
 
-		// Request display
-		sfRenderWindow_display (this->window);
+        // Request display
+        sfRenderWindow_display (this->window);
 
-		// Sleep a bit so the CPU doesn't burn
-		sfSleep(sfMilliseconds(1));
+        // Sleep a bit so the CPU doesn't burn
+        sfSleep(sfMilliseconds(1));
     }
 
-	// Request to close the window
-	sfRenderWindow_close (this->window);
+    // Request to close the window
+    sfRenderWindow_close (this->window);
 }
 
 
@@ -156,10 +156,10 @@ Screen_loop (
  */
 void
 Screen_startThread (
-	Screen *this
+    Screen *this
 ) {
-	this->thread = sfThread_create ((void (*)(void*)) Screen_loop, this);
-	sfThread_launch (this->thread);
+    this->thread = sfThread_create ((void (*)(void*)) Screen_loop, this);
+    sfThread_launch (this->thread);
 }
 
 
@@ -170,10 +170,10 @@ Screen_startThread (
  */
 void
 Screen_stopThread (
-	Screen *this
+    Screen *this
 ) {
-	this->isRunning = false;
-	sfThread_wait (this->thread);
+    this->isRunning = false;
+    sfThread_wait (this->thread);
 }
 
 
@@ -189,44 +189,44 @@ Screen_stopThread (
  */
 bool
 Screen_drawSprite (
-	Screen *this,
-	uint8_t x,
-	uint8_t y,
-	uint8_t height,
-	uint8_t *memory,
-	uint16_t index
+    Screen *this,
+    uint8_t x,
+    uint8_t y,
+    uint8_t height,
+    uint8_t *memory,
+    uint16_t index
 ) {
-	bool result = false;
-	uint8_t mByte;
+    bool result = false;
+    uint8_t mByte;
 
-	if (x > RESOLUTION_W || y > RESOLUTION_H) {
-		dbg ("Warning : drawing out of screen : \n"
-			 "(x=0x%x, max=0x%x) | (y=0x%x, max=0x%x)", x, RESOLUTION_W, y, RESOLUTION_H);
-		exit (0);
-	}
+    if (x > RESOLUTION_W || y > RESOLUTION_H) {
+        dbg ("Warning : drawing out of screen : \n"
+             "(x=0x%x, max=0x%x) | (y=0x%x, max=0x%x)", x, RESOLUTION_W, y, RESOLUTION_H);
+        exit (0);
+    }
 
-	for (int posY = 0; posY < height; posY++)
-	{
-		mByte = memory[index + posY];
+    for (int posY = 0; posY < height; posY++)
+    {
+        mByte = memory[index + posY];
 
-		for (int posX = 0; posX < 8; posX++)
-		{
-			if ((mByte & (0x80 >> posX)) != 0)
-			{
-				Pixel *pixel = this->pixels [x + posX + ((y + posY) * RESOLUTION_W)];
+        for (int posX = 0; posX < 8; posX++)
+        {
+            if ((mByte & (0x80 >> posX)) != 0)
+            {
+                Pixel *pixel = this->pixels [x + posX + ((y + posY) * RESOLUTION_W)];
 
-				if (pixel->value == PIXEL_BLACK) {
-					// A pixel changed from PIXEL_WHITE to PIXEL_BLACK
-					result = true;
-				}
+                if (pixel->value == PIXEL_BLACK) {
+                    // A pixel changed from PIXEL_WHITE to PIXEL_BLACK
+                    result = true;
+                }
 
-				// Invert pixel color
-				Pixel_invertColor (pixel);
-			}
-		}
-	}
+                // Invert pixel color
+                Pixel_invertColor (pixel);
+            }
+        }
+    }
 
-	return result;
+    return result;
 }
 
 
@@ -236,30 +236,16 @@ Screen_drawSprite (
  */
 void
 Screen_free (
-	Screen *this
+    Screen *this
 ) {
-	if (this != NULL)
-	{
-		for (int i = 0; i < RESOLUTION_W * RESOLUTION_H; i++) {
-			Pixel_free (this->pixels[i]);
-		}
+    if (this != NULL)
+    {
+        for (int i = 0; i < RESOLUTION_W * RESOLUTION_H; i++) {
+            Pixel_free (this->pixels[i]);
+        }
 
-		sfRenderWindow_destroy (this->window);
-		Profiler_free (this->profiler);
-		free (this);
-	}
-}
-
-
-/*
- * Description : Unit tests checking if a Screen is coherent
- * Screen *this : The instance to test
- * Return : true on success, false on failure
- */
-bool
-Screen_test (
-	Screen *this
-) {
-
-	return true;
+        sfRenderWindow_destroy (this->window);
+        Profiler_free (this->profiler);
+        free (this);
+    }
 }

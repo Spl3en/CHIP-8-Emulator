@@ -14,30 +14,30 @@ typedef int ProfilerId;
 
 typedef struct _Profiler
 {
-	unsigned int ticksCount;
-	sfClock *clock;
+    unsigned int ticksCount;
+    sfClock *clock;
 
-	sfText *text;
-	const char *name;
+    sfText *text;
+    const char *name;
 
-	ProfilerId id;
+    ProfilerId id;
 
-}	Profiler;
+}    Profiler;
 
 
 
 // --------- Allocators ---------
 
 /*
- * Description 	 : Allocate a new Profiler structure.
+ * Description      : Allocate a new Profiler structure.
  * ProfilerId id : ID of the profiler. Should be unique.
  * char * name   : Name of the profiler (optional, can be NULL)
- * Return		 : A pointer to an allocated Profiler.
+ * Return         : A pointer to an allocated Profiler.
  */
 Profiler *
 Profiler_new (
-	ProfilerId id,
-	char *name
+    ProfilerId id,
+    char *name
 );
 
 // ----------- Functions ------------
@@ -51,9 +51,9 @@ Profiler_new (
  */
 bool
 Profiler_init (
-	Profiler *this,
-	ProfilerId id,
-	char *name
+    Profiler *this,
+    ProfilerId id,
+    char *name
 );
 
 /*
@@ -63,7 +63,7 @@ Profiler_init (
  */
 bool
 Profiler_test (
-	Profiler *this
+    Profiler *this
 );
 
 /*
@@ -73,7 +73,7 @@ Profiler_test (
  */
 void
 Profiler_tick (
-	Profiler *this
+    Profiler *this
 );
 
 /*
@@ -83,7 +83,7 @@ Profiler_tick (
  */
 float
 Profiler_getTime (
-	Profiler *this
+    Profiler *this
 );
 
 /*
@@ -93,7 +93,7 @@ Profiler_getTime (
  */
 void
 Profiler_restart (
-	Profiler *this
+    Profiler *this
 );
 
 /*
@@ -103,7 +103,7 @@ Profiler_restart (
  */
 void
 Profiler_start (
-	Profiler * this
+    Profiler * this
 );
 
 /*
@@ -113,7 +113,7 @@ Profiler_start (
  */
 void
 Profiler_update (
-	Profiler *this
+    Profiler *this
 );
 
 
@@ -125,7 +125,7 @@ Profiler_update (
  */
 void
 Profiler_free (
-	Profiler *this
+    Profiler *this
 );
 
 

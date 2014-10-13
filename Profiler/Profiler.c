@@ -6,26 +6,26 @@
 #include "dbg/dbg.h"
 
 /*
- * Description 	 : Allocate a new Profiler structure.
+ * Description      : Allocate a new Profiler structure.
  * ProfilerId id : ID of the profiler. Should be unique.
- * Return		 : A pointer to an allocated Profiler.
+ * Return         : A pointer to an allocated Profiler.
  */
 Profiler *
 Profiler_new (
-	ProfilerId id,
-	char *name
+    ProfilerId id,
+    char *name
 ) {
-	Profiler *this;
+    Profiler *this;
 
-	if ((this = calloc (1, sizeof(Profiler))) == NULL)
-		return NULL;
+    if ((this = calloc (1, sizeof(Profiler))) == NULL)
+        return NULL;
 
-	if (!Profiler_init (this, id, name)) {
-		Profiler_free (this);
-		return NULL;
-	}
+    if (!Profiler_init (this, id, name)) {
+        Profiler_free (this);
+        return NULL;
+    }
 
-	return this;
+    return this;
 }
 
 
@@ -38,22 +38,22 @@ Profiler_new (
  */
 bool
 Profiler_init (
-	Profiler *this,
-	ProfilerId id,
-	char *name
+    Profiler *this,
+    ProfilerId id,
+    char *name
 ) {
-	this->id = id;
-	this->ticksCount = 0;
-	this->clock = NULL;
-	this->name = name;
+    this->id = id;
+    this->ticksCount = 0;
+    this->clock = NULL;
+    this->name = name;
 
-	this->text = sfText_create ();
-	sfText_setFont (this->text, sfFont_createFromFile("verdana.ttf"));
-	sfText_setCharacterSize (this->text, 15);
-	sfText_setColor (this->text, sfRed);
-	sfText_setPosition (this->text, (sfVector2f) {.x = 0, .y = 0 + (id * 15)});
+    this->text = sfText_create ();
+    sfText_setFont (this->text, sfFont_createFromFile("verdana.ttf"));
+    sfText_setCharacterSize (this->text, 15);
+    sfText_setColor (this->text, sfRed);
+    sfText_setPosition (this->text, (sfVector2f) {.x = 0, .y = 0 + (id * 15)});
 
-	return true;
+    return true;
 }
 
 
@@ -64,12 +64,12 @@ Profiler_init (
  */
 inline void
 Profiler_tick (
-	Profiler *this
+    Profiler *this
 ) {
-	if (!this->clock) {
-		Profiler_start(this);
-	}
-	this->ticksCount++;
+    if (!this->clock) {
+        Profiler_start(this);
+    }
+    this->ticksCount++;
 }
 
 
@@ -80,11 +80,11 @@ Profiler_tick (
  */
 void
 Profiler_update (
-	Profiler *this
+    Profiler *this
 ) {
-	unsigned char buffer[1024];
-	sprintf (buffer, "%s = %u T/s\n", this->name, this->ticksCount);
-	sfText_setString (this->text, buffer);
+    unsigned char buffer[1024];
+    sprintf (buffer, "%s = %u T/s\n", this->name, this->ticksCount);
+    sfText_setString (this->text, buffer);
 }
 
 
@@ -95,9 +95,9 @@ Profiler_update (
  */
 float
 Profiler_getTime (
-	Profiler *this
+    Profiler *this
 ) {
-	return sfTime_asSeconds (sfClock_getElapsedTime (this->clock));
+    return sfTime_asSeconds (sfClock_getElapsedTime (this->clock));
 }
 
 /*
@@ -107,10 +107,10 @@ Profiler_getTime (
  */
 void
 Profiler_restart (
-	Profiler *this
+    Profiler *this
 ) {
-	this->ticksCount = 0;
-	sfClock_restart (this->clock);
+    this->ticksCount = 0;
+    sfClock_restart (this->clock);
 }
 
 /*
@@ -120,10 +120,10 @@ Profiler_restart (
  */
 void
 Profiler_start (
-	Profiler * this
+    Profiler * this
 ) {
-	this->clock = sfClock_create ();
-	this->ticksCount = 0;
+    this->clock = sfClock_create ();
+    this->ticksCount = 0;
 }
 
 
@@ -133,14 +133,14 @@ Profiler_start (
  */
 void
 Profiler_free (
-	Profiler *this
+    Profiler *this
 ) {
-	if (this != NULL) {
-		sfClock_destroy (this->clock);
-		sfFont_destroy ((sfFont *) sfText_getFont (this->text));
-		sfText_destroy (this->text);
-		free (this);
-	}
+    if (this != NULL) {
+        sfClock_destroy (this->clock);
+        sfFont_destroy ((sfFont *) sfText_getFont (this->text));
+        sfText_destroy (this->text);
+        free (this);
+    }
 }
 
 
@@ -151,8 +151,8 @@ Profiler_free (
  */
 bool
 Profiler_test (
-	Profiler *this
+    Profiler *this
 ) {
 
-	return true;
+    return true;
 }
