@@ -70,6 +70,10 @@
 			<Option compilerVar="CC" />
 		</Unit>
 		<Unit filename="Chip8\Screen.h" />
+		<Unit filename="Chip8\Window.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="Chip8\Window.h" />
 		<Unit filename="Profiler\Profiler.c">
 			<Option compilerVar="CC" />
 		</Unit>

@@ -7,14 +7,11 @@
 #include <stdint.h>
 
 // ---------- Defines -------------
-#define KEYS_COUNT 16
 
 
 // ------ Structure declaration -------
 typedef struct _IoManager
 {
-	// Keys states
-	uint8_t keysState [KEYS_COUNT];
 
 	// Loop state
 	bool listening;
@@ -32,30 +29,6 @@ typedef struct _IoManager
 	bool beepRequest;
 
 }	IoManager;
-
-/*
- *	Key associated with each keycode
- */
-typedef enum {
-	keyCode_X = 0x0,
-	keyCode_1 = 0x1,
-	keyCode_2 = 0x2,
-	keyCode_3 = 0x3,
-	keyCode_A = 0x4,
-	keyCode_Z = 0x5,
-	keyCode_E = 0x6,
-	keyCode_Q = 0x7,
-	keyCode_S = 0x8,
-	keyCode_D = 0x9,
-	keyCode_W = 0xA,
-	keyCode_C = 0xB,
-	keyCode_4 = 0xC,
-	keyCode_R = 0xD,
-	keyCode_F = 0xE,
-	keyCode_V = 0xF,
-
-	keyCodeCount // Always at the end
-} keyCode;
 
 // --------- Allocators ---------
 

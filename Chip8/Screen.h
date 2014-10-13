@@ -5,16 +5,11 @@
 #include "Utils/Utils.h"
 #include "Pixel.h"
 #include "Profiler/ProfilerFactory.h"
-#include <stdint.h>
 #include <SFML/Graphics.h>
 
 // ---------- Defines -------------
 #define RESOLUTION_W 64
 #define RESOLUTION_H 32
-
-// Window properties
-#define WINDOW_TITLE 		"CHIP-8 Emulator"
-#define WINDOW_FULLSCREEN 	false
 
 // ------ Structure declaration -------
 typedef struct _Screen
@@ -22,17 +17,17 @@ typedef struct _Screen
 	// Screen display buffer
 	Pixel * pixels [RESOLUTION_W * RESOLUTION_H];
 
-	// SFML window object
+	// SFML window object shared with Window
 	sfRenderWindow *window;
-
-	// Font used for displaying info
-	sfFont *font;
 
 	// Profiler for the Screen display
 	Profiler * profiler;
 
 	// Running state
 	bool isRunning;
+
+	// Thread object pointer
+	sfThread *thread;
 
 }	Screen;
 
@@ -41,21 +36,27 @@ typedef struct _Screen
 // --------- Allocators ---------
 
 /*
+ * Description 	: Allocate a new Screen structure.
+ * sfRenderWindow *sfmlWindow : A SFML render window context
  * Return 		: A pointer to an allocated Screen.
  */
 Screen *
-Screen_new (void);
+Screen_new (
+	sfRenderWindow *sfmlWindow
+);
 
 // ----------- Functions ------------
 
 /*
  * Description : Initialize an allocated Screen structure.
  * Screen *this : An allocated Screen to initialize.
+ * sfRenderWindow *sfmlWindow : A SFML render window context
  * Return : true on success, false on failure.
  */
 bool
 Screen_init (
-	Screen *this
+	Screen *this,
+	sfRenderWindow *sfmlWindow
 );
 
 /*
@@ -101,10 +102,19 @@ Screen_clear (
 /*
  * Description : Start the main loop of the screen rendering in a separate thread.
  * Screen *this : An allocated Screen
- * Return : sfThread * Thread object pointer
  */
-sfThread *
+void
 Screen_startThread (
+	Screen *this
+);
+
+/*
+ * Description : Stop the separate thread for the Screen
+ * Screen *this : An allocated Screen
+ * Return : void
+ */
+void
+Screen_stopThread (
 	Screen *this
 );
 

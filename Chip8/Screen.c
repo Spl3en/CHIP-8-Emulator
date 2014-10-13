@@ -7,16 +7,19 @@
 
 /*
  * Description 	: Allocate a new Screen structure.
+ * sfRenderWindow *sfmlWindow : A SFML render window context
  * Return 		: A pointer to an allocated Screen.
  */
 Screen *
-Screen_new (void) {
+Screen_new (
+	sfRenderWindow *sfmlWindow
+) {
 	Screen *this;
 
 	if ((this = calloc (1, sizeof(Screen))) == NULL)
 		return NULL;
 
-	if (!Screen_init (this)) {
+	if (!Screen_init (this, sfmlWindow)) {
 		Screen_free (this);
 		return NULL;
 	}
@@ -28,41 +31,19 @@ Screen_new (void) {
 /*
  * Description : Initialize an allocated Screen structure.
  * Screen *this : An allocated Screen to initialize.
+ * sfRenderWindow *sfmlWindow : A SFML render window context
  * Return : true on success, false on failure.
  */
 bool
 Screen_init (
-	Screen *this
+	Screen *this,
+	sfRenderWindow *sfmlWindow
 ) {
-	// Configure SFML RenderWindow
-	this->window = sfRenderWindow_create (
-		(sfVideoMode) {
-			.width  = RESOLUTION_W * PIXEL_SIZE,
-			.height = RESOLUTION_H * PIXEL_SIZE,
-			.bitsPerPixel = 32
-		},
-		WINDOW_TITLE,
-		(WINDOW_FULLSCREEN) ? sfFullscreen : sfNone,
-		(sfContextSettings[]) {{
-			.depthBits = 32,
-			.stencilBits = 8,
-			.antialiasingLevel = 0,
-			.majorVersion = 2,
-			.minorVersion = 1,
-		}}
-	);
-
-	// Activate vertical sync
-	sfRenderWindow_setVerticalSyncEnabled (this->window, true);
-
-	// Load from a font file on disk
-	if ((this->font = sfFont_createFromFile("verdana.ttf")) == NULL) {
-		dbg ("Font loading error.");
-		return false;
-	}
-
 	// Get a profiler
 	this->profiler = ProfilerFactory_getProfiler ("Screen");
+
+	// Share the sfmlWindow pointer
+	this->window = sfmlWindow;
 
 	/* Initialize the pixels array */
 	int id = 0;
@@ -113,6 +94,7 @@ void Screen_debug (
 }
 
 
+
 /*
  * Description : Draw the screen buffer to the user screen
  * Screen *this : An allocated Screen
@@ -122,8 +104,6 @@ void
 Screen_loop (
 	Screen *this
 ) {
-	sfEvent event;
-
 	// Information for displaying profilers
 	int profilersArraySize;
 	Profiler **profilersArray = ProfilerFactory_getArray (&profilersArraySize);
@@ -131,21 +111,6 @@ Screen_loop (
     // Rendering loop
     while (this->isRunning)
     {
-		// Poll SFML window events
-        while (sfRenderWindow_pollEvent (this->window, &event)) {
-            if (event.type == sfEvtClosed) {
-                sfRenderWindow_close (this->window);
-                this->isRunning = false;
-            }
-        }
-
-		// Handle special key events
-		if (sfKeyboard_isKeyPressed (sfKeyEscape)) {
-			// ESCAPE : Quit
-			sfRenderWindow_close (this->window);
-            this->isRunning = false;
-		}
-
     	// Increment frame counter
     	Profiler_tick (this->profiler);
 
@@ -175,21 +140,35 @@ Screen_loop (
 		// Sleep a bit so the CPU doesn't burn
 		sfSleep(sfMilliseconds(1));
     }
+
+	// Request to close the window
+	sfRenderWindow_close (this->window);
 }
 
 /*
  * Description : Start the main loop of the screen rendering in a separate thread.
  * Screen *this : An allocated Screen
- * Return : sfThread * Thread object pointer
  */
-sfThread *
+void
 Screen_startThread (
 	Screen *this
 ) {
-	sfThread *thread = sfThread_create ((void (*)(void*)) Screen_loop, this);
-	sfThread_launch (thread);
+	this->thread = sfThread_create ((void (*)(void*)) Screen_loop, this);
+	sfThread_launch (this->thread);
+}
 
-	return thread;
+
+/*
+ * Description : Stop the separate thread for the Screen
+ * Screen *this : An allocated Screen
+ * Return : void
+ */
+void
+Screen_stopThread (
+	Screen *this
+) {
+	this->isRunning = false;
+	sfThread_wait (this->thread);
 }
 
 
@@ -256,7 +235,6 @@ Screen_free (
 		}
 
 		sfRenderWindow_destroy (this->window);
-		sfFont_destroy (this->font);
 		Profiler_free (this->profiler);
 		free (this);
 	}

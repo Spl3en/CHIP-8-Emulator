@@ -2,9 +2,9 @@
 #pragma once
 
 // ---------- Includes ------------
-#include "FontSet.h"
+#include "Window.h"
 #include "Screen.h"
-#include "IoManager.h"
+#include "FontSet.h"
 #include "Profiler/ProfilerFactory.h"
 #include "Utils/Utils.h"
 #include "Ztring/Ztring.h"
@@ -14,8 +14,8 @@
 #define MEMORY_SIZE 0x1000
 #define REGISTERS_COUNT 16
 #define STACK_SIZE 16
-#define INSTRUCTION_BYTES_SIZE 2
-#define DEFAULT_CPU_SPEED 10
+#define INSN_SIZE sizeof(((Cpu *)0)->opcode)
+#define DEFAULT_CPU_SPEED 5
 
 // Memory layout
 #define USER_SPACE_START_ADDRESS 0x200
@@ -57,9 +57,6 @@ typedef struct _Cpu
 	// Screen display
     Screen *screen;
 
-    // I/O manager
-    IoManager *io;
-
 	// Timers : when set above zero they will count down to zero.
 	uint8_t delayTimer;
 	uint8_t soundTimer; // The system’s buzzer sounds whenever the sound timer reaches zero.
@@ -87,7 +84,7 @@ typedef struct _Cpu
  * Return		: A pointer to an allocated Cpu.
  */
 Cpu *
-Cpu_new (void);
+Cpu_new ();
 
 // ----------- Functions ------------
 

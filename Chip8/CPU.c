@@ -45,12 +45,6 @@ Cpu_init (
 	// Instruction pointer start at the start of the program
 	this->ip = USER_SPACE_START_ADDRESS;
 
-	// Load screen component
-	this->screen = Screen_new ();
-
-	// Load I/O Manager component
-	this->io = IoManager_new ();
-
 	// Get a profiler
 	this->profiler = ProfilerFactory_getProfiler ("CPU");
 
@@ -217,7 +211,7 @@ Cpu_getPreviousOpCode (
 		exit (0);
 	}
 
-	return Cpu_fetchOpcode (this, ip - INSTRUCTION_BYTES_SIZE);
+	return Cpu_fetchOpcode (this, ip - INSN_SIZE);
 }
 
 
@@ -270,13 +264,13 @@ Cpu_executeOpcode (
 						case 0x00E0:
 						/*   0x00E0 	Clears the screen. */
 							Screen_clear (this->screen);
-							this->ip += 2;
+							this->ip += INSN_SIZE;
 						break;
 
 						case 0x00EE:
 						/*   0x00EE 	Returns from a subroutine. */
 							// Pop the return address on the stack
-							this->ip = Cpu_stackPop (this) + INSTRUCTION_BYTES_SIZE;
+							this->ip = Cpu_stackPop (this) + INSN_SIZE;
 						break;
 
 						default : Cpu_unknownOpcode (this); break;
@@ -322,13 +316,13 @@ Cpu_executeOpcode (
 		case 0x6000:
 		/*   0x6XNN 	Sets VX to NN. */
 			VX = __NN;
-			this->ip += 2;
+			this->ip += INSN_SIZE;
 		break;
 
 		case 0x7000:
 		/*   0x7XNN 	Adds NN to VX. */
 			VX += __NN;
-			this->ip += 2;
+			this->ip += INSN_SIZE;
 		break;
 
 		case 0x8000:
@@ -337,60 +331,60 @@ Cpu_executeOpcode (
 				case 0x0000:
 				/*   0x8XY0 	Sets VX to the value of VY. */
 					VX = VY;
-					this->ip += 2;
+					this->ip += INSN_SIZE;
 				break;
 
 				case 0x0001:
 				/*   0x8XY1 	Sets VX to VX or VY. */
 					VX |= VY;
-					this->ip += 2;
+					this->ip += INSN_SIZE;
 				break;
 
 				case 0x0002:
 				/*   0x8XY2 	Sets VX to VX and VY. */
 					VX &= VY;
-					this->ip += 2;
+					this->ip += INSN_SIZE;
 				break;
 
 				case 0x0003:
 				/*   0x8XY3 	Sets VX to VX xor VY. */
 					VX ^= VY;
-					this->ip += 2;
+					this->ip += INSN_SIZE;
 				break;
 
 				case 0x0004:
 				/*   0x8XY4 	Adds VY to VX. VF is set to 1 when there's a carry, and to 0 when there isn't. */
 					VF = (VY > (0xFF - VX)) ? 1 : 0; // carry
 					VX += VY;
-					this->ip += 2;
+					this->ip += INSN_SIZE;
 				break;
 
 				case 0x0005:
 				/*   0x8XY5 	VY is subtracted from VX. VF is set to 0 when there's a borrow, and 1 when there isn't. */
 					VF = (VY > VX) ? 0 : 1; // borrow
 					VX -= VY;
-					this->ip += 2;
+					this->ip += INSN_SIZE;
 				break;
 
 				case 0x0006:
 				/*   0x8XY6 	Shifts VX right by one. VF is set to the value of the least significant bit of VX before the shift. */
 					VF = VX & 0x1;
 					VX >>= 1;
-					this->ip += 2;
+					this->ip += INSN_SIZE;
 				break;
 
 				case 0x0007:
 				/*   0x8XY7 	Sets VX to VY minus VX. VF is set to 0 when there's a borrow, and 1 when there isn't. */
 					VF = (VX > VY) ? 0 : 1; // borrow
 					VX = VY - VX;
-					this->ip += 2;
+					this->ip += INSN_SIZE;
 				break;
 
 				case 0x000E:
 				/*   0x8XYE 	Shifts VX left by one. VF is set to the value of the most significant bit of VX before the shift. */
 					VF = VX >> 7;
 					VX <<= 1;
-					this->ip += 2;
+					this->ip += INSN_SIZE;
 				break;
 
 				default :
@@ -407,7 +401,7 @@ Cpu_executeOpcode (
 		case 0xA000:
 		/*   0xANNN 	Sets I to the address NNN. */
 			this->I = _NNN;
-			this->ip += 2;
+			this->ip += INSN_SIZE;
 		break;
 
 		case 0xB000:
@@ -418,7 +412,7 @@ Cpu_executeOpcode (
 		case 0xC000:
 		/*  CXNN 	Sets VX to a random number and NN. */
 			VX = (rand() % 0xFF) & __NN;
-			this->ip += 2;
+			this->ip += INSN_SIZE;
 		break;
 
 		case 0xD000:
@@ -429,7 +423,7 @@ Cpu_executeOpcode (
 		*/
 			// Set VF to 1 if a pixel changed from 1 to 0
 			VF = Screen_drawSprite (this->screen, VX, VY, ___N, this->memory, this->I);
-			this->ip += 2;
+			this->ip += INSN_SIZE;
 		break;
 
 		case 0xE000:
@@ -437,12 +431,12 @@ Cpu_executeOpcode (
 			{
 				case 0x009E:
 				/*   0xEX9E 	Skips the next instruction if the key stored in VX is pressed. */
-					this->ip += (this->io->keysState[VX] != 0) ? 4 : 2;
+					this->ip += (Window_requestKeyState (VX) == KEY_PRESSED) ? INSN_SIZE * 2 : 2;
 				break;
 
 				case 0x00A1:
 				/*   0xEXA1 	Skips the next instruction if the key stored in VX isn't pressed. */
-					this->ip += (this->io->keysState[VX] == 0) ? 4 : 2;
+					this->ip += (Window_requestKeyState (VX) == KEY_RELEASED) ? 4 : 2;
 				break;
 
 				default :
@@ -457,22 +451,27 @@ Cpu_executeOpcode (
 				case 0x0007:
 				/*   0xFX07 	Sets VX to the value of the delay timer. */
 					VX = this->delayTimer;
-					this->ip += 2;
+					this->ip += INSN_SIZE;
 				break;
 
 				case 0x000A: {
 				/*   0xFX0A 	A key press is awaited, and then stored in VX. */
 					bool keyPressed = false;
 					for (int i = 0; i < 16; ++i) {
-						if (this->io->keysState[i] != 0) {
+						if (Window_requestKeyState (i) == KEY_PRESSED) {
 							VX = i;
 							keyPressed = true;
+							// The CPU loop is way faster than the I/O handler one.
+							// Thus, the CPU has the right to notify than the key
+							// has been handled as pressed and shouldn't be
+							// handled twice.
+							Window_setKeyState (i, KEY_PUSHED);
 						}
 					}
 
 					// Only step to the next instruction if a key has been pressed
 					if (keyPressed) {
-						this->ip += 2;
+						this->ip += INSN_SIZE;
 					}
 				}
 				break;
@@ -480,27 +479,27 @@ Cpu_executeOpcode (
 				case 0x0015:
 				/*   0xFX15 	Sets the delay timer to VX. */
 					this->delayTimer = VX;
-					this->ip += 2;
+					this->ip += INSN_SIZE;
 				break;
 
 				case 0x0018:
 				/*   0xFX18 	Sets the sound timer to VX. */
 					this->soundTimer = VX;
-					this->ip += 2;
+					this->ip += INSN_SIZE;
 				break;
 
 				case 0x001E:
 				/*   0xFX1E 	Adds VX to I. */
 					VF = (this->I + VX > 0xFFF)	? 1 : 0; // VF = 1 when overflow
 					this->I += VX;
-					this->ip += 2;
+					this->ip += INSN_SIZE;
 				break;
 
 				case 0x0029:
 				/*   0xFX29 	Sets I to the location of the sprite for the character in VX.
 								Characters 0-F (in hexadecimal) are represented by a 4x5 font. */
 					this->I = VX * 5;
-					this->ip += 2;
+					this->ip += INSN_SIZE;
 				break;
 
 				case 0x0033:
@@ -511,7 +510,7 @@ Cpu_executeOpcode (
 					this->memory[this->I]     =  VX / 100;
 					this->memory[this->I + 1] = (VX / 10)  % 10;
 					this->memory[this->I + 2] = (VX % 100) % 10;
-					this->ip += 2;
+					this->ip += INSN_SIZE;
 				break;
 
 				case 0x0055:
@@ -521,7 +520,7 @@ Cpu_executeOpcode (
 					}
 					// On the original interpreter, when the operation is done, I = I + X + 1.
 					this->I += _X__ + 1;
-					this->ip += 2;
+					this->ip += INSN_SIZE;
 				break;
 
 				case 0x0065:
@@ -533,7 +532,7 @@ Cpu_executeOpcode (
 
 					// On the original interpreter, when the operation is done, I = I + X + 1.
 					this->I += _X__ + 1;
-					this->ip += 2;
+					this->ip += INSN_SIZE;
 				break;
 
 				default :
@@ -571,7 +570,7 @@ Cpu_unknownOpcode (
 	Cpu *this
 ) {
 	dbg ("Unsupported instruction : %04X", this->opcode);
-	this->ip += 2;
+	this->ip += INSN_SIZE;
 	exit(0);
 }
 
@@ -593,8 +592,7 @@ Cpu_updateTimers (
 		this->soundTimer--;
 
 		if (this->soundTimer == 0) {
-			dbg ("BEEP!");
-			IoManager_requestBeep (this->io);
+			Window_requestBeep ();
 		}
 	}
 }
@@ -662,7 +660,6 @@ Cpu_free (
 ) {
 	if (this != NULL)
 	{
-		IoManager_free (this->io);
 		Screen_free (this->screen);
 		Profiler_free (this->profiler);
 		sfThread_destroy (this->thread);

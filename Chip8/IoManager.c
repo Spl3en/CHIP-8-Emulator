@@ -37,9 +37,6 @@ bool
 IoManager_init (
 	IoManager *this
 ) {
-	// Reset keys state
-	memset(this->keysState, 0, sizeof (this->keysState));
-
 	// Start listening
 	this->listening = true;
 
@@ -62,45 +59,9 @@ void
 IoManager_loop (
 	IoManager *this
 ) {
-	// Association CHIP-8 keycode <-> SFML KeyCode
-	sfKeyCode sfmlKeyCodes[] = {
-		[keyCode_1] = sfKeyNum1,
-		[keyCode_2] = sfKeyNum2,
-		[keyCode_3] = sfKeyNum3,
-		[keyCode_4] = sfKeyNum4,
-		[keyCode_A] = sfKeyA,
-		[keyCode_Z] = sfKeyZ,
-		[keyCode_E] = sfKeyE,
-		[keyCode_R] = sfKeyR,
-		[keyCode_Q] = sfKeyQ,
-		[keyCode_S] = sfKeyS,
-		[keyCode_D] = sfKeyD,
-		[keyCode_C] = sfKeyC,
-		[keyCode_W] = sfKeyW,
-		[keyCode_X] = sfKeyX,
-		[keyCode_F] = sfKeyF,
-		[keyCode_V] = sfKeyV
-	};
-
 	while (this->isRunning)
 	{
 		Profiler_tick (this->profiler);
-
-		// Check if a key is pressed
-		for (int code = 0; code < keyCodeCount; code++) {
-			this->keysState[code] = sfKeyboard_isKeyPressed (sfmlKeyCodes[code]);
-		}
-
-		// Check if a beep is requested
-		if (this->beepRequest) {
-			#ifdef WIN32
-				Beep (440, 120);
-			#else
-				dbg ("Beep !");
-			#endif
-
-			this->beepRequest = false;
-		}
 
 		// Sleep a bit so the CPU doesn't burn
 		sfSleep(sfMilliseconds(1));
@@ -122,18 +83,6 @@ IoManager_startThread (
 	return this->thread;
 }
 
-
-/*
- * Description :
- * IoManager *this : An allocated IoManager
- * Return : void
- */
-void
-IoManager_requestBeep (
-	IoManager *this
-) {
-	this->beepRequest = true;
-}
 
 
 /*
