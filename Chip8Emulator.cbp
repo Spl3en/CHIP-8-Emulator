@@ -54,14 +54,6 @@
 			<Option compilerVar="CC" />
 		</Unit>
 		<Unit filename="Chip8\CPU.h" />
-		<Unit filename="Chip8\FontSet.c">
-			<Option compilerVar="CC" />
-		</Unit>
-		<Unit filename="Chip8\FontSet.h" />
-		<Unit filename="Chip8\IoManager.c">
-			<Option compilerVar="CC" />
-		</Unit>
-		<Unit filename="Chip8\IoManager.h" />
 		<Unit filename="Chip8\Pixel.c">
 			<Option compilerVar="CC" />
 		</Unit>
