@@ -11,7 +11,7 @@ int main (int argc, char **argv)
 	}
 
 	// Load a ROM into it
-	if (!Cpu_loadRom (cpu, "./games/TANK")) {
+	if (!Cpu_loadRom (cpu, "./games/INVADERS")) {
 		printf ("Error : Can't load ROM.\n");
 		return -1;
 	}

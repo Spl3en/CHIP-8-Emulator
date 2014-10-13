@@ -25,7 +25,6 @@ Cpu_new (void)
 	return this;
 }
 
-
 /*
  * Description : Initialize an allocated Cpu structure.
  * Cpu *this : An allocated Cpu to initialize.
@@ -60,7 +59,6 @@ Cpu_init (
 
 	return true;
 }
-
 
 /*
  * Description : Load a ROM into the Chip8 memory
@@ -100,19 +98,20 @@ Cpu_loadRom (
 	return true;
 }
 
-
 /*
  * Description : Fetch the next opcode
  * Cpu *this : An allocated Cpu
- * Return : void
+ * uint16_t ip : The instruction pointer containing the opcodes to fetch
+ * Return : uint16_t the opcodes read from memory at IP
  */
-inline void
+inline uint16_t
 Cpu_fetchOpcode (
-	Cpu *this
+	Cpu *this,
+	uint16_t ip
 ) {
 	// 16 bytes instructions : read the next 2 bytes in memory
-	this->opcode = (this->memory[this->ip] << 8
-				 |  this->memory[this->ip + 1]);
+	return (this->memory[ip] << 8
+	     |  this->memory[ip + 1]);
 }
 
 /*
@@ -153,7 +152,7 @@ Cpu_debug (
  * Cpu *this : An allocated Cpu
  * Return : uint8_t top byte on the stack
  */
-uint8_t
+uint16_t
 Cpu_stackPop (
 	Cpu *this
 ) {
@@ -169,13 +168,13 @@ Cpu_stackPop (
 /*
  * Description : Push an element on the stack
  * Cpu *this : An allocated Cpu
- * uint8_t value : the value to push
+ * uint16_t value : the value to push
  * Return : void
  */
 void
 Cpu_stackPush (
 	Cpu *this,
-	uint8_t value
+	uint16_t value
 ) {
 	if (this->sp >= STACK_SIZE) {
 		dbg ("Error : Stack overflow");
@@ -185,6 +184,41 @@ Cpu_stackPush (
 	this->stack[this->sp++] = value;
 }
 
+/*
+ * Description : Get the previous instruction before IP
+ * Cpu *this : An allocated Cpu
+ * uint16_t ip : The instruction before which one we want to get the previous one
+ * Return : uint16_t the previous ins
+truction
+ */
+uint16_t
+Cpu_getPreviousOpCode (
+	Cpu *this,
+	uint16_t ip
+) {
+	if (ip > MEMORY_SIZE) {
+		dbg ("Error : Out of memory");
+		exit (0);
+	}
+
+	return Cpu_fetchOpcode (this, ip - INSTRUCTION_BYTES_SIZE);
+}
+
+
+/*
+ * Description : Print the current state of the stack in the console
+ * Cpu *this : An allocated Cpu
+ * Return : void
+ */
+void
+Cpu_debugStack (
+	Cpu *this
+) {
+	for (int i = 0; i < STACK_SIZE; i++) {
+		printf("[%d] : %x\n", i, this->stack[i]);
+	}
+	printf("\n");
+}
 
 /*
  * Description : Execute the current opcode
@@ -225,7 +259,10 @@ Cpu_executeOpcode (
 						case 0x00EE:
 						/*   0x00EE 	Returns from a subroutine. */
 							// Pop the return address on the stack
+							// Cpu_debugStack (this);
+							// printf ("Return from subroutine : %x -> ", this->ip);
 							this->ip = Cpu_stackPop (this);
+							// printf ("%x\n", this->ip);
 						break;
 
 						default : Cpu_unknownOpcode (this); break;
@@ -235,6 +272,7 @@ Cpu_executeOpcode (
 				default :
 				//   0x0NNN 	Calls RCA 1802 program at address NNN.
 					printf("Unhandled 0x0NNN.\n");
+					exit(0);
 				break;
 			}
 		break;
@@ -247,9 +285,11 @@ Cpu_executeOpcode (
 		case 0x2000:
 		/*   0x2NNN 	Calls subroutine at NNN. */
 			// Push the return address on the stack
+			// printf ("Function called : %x / Return address : %x\n", _NNN, this->ip+2);
 			Cpu_stackPush (this, this->ip + 2);
 			// Jump to address NNN.
 			this->ip = _NNN;
+			// Cpu_debugStack (this);
 		break;
 
 		case 0x3000:
@@ -450,7 +490,6 @@ Cpu_executeOpcode (
 					this->ip += 2;
 				break;
 
-
 				case 0x0033:
 				/*   0xFX33 	Stores the Binary-coded decimal representation of VX, with the most significant of three digits at the address in I,
 								the middle digit at I plus 1, and the least significant digit at I plus 2.
@@ -464,22 +503,23 @@ Cpu_executeOpcode (
 
 				case 0x0055:
 				/*   0xFX55 	Stores V0 to VX in memory starting at address I. */
-					for (int pos = 0; pos <= VX; pos++) {
+					for (int pos = 0; pos <= _X__; pos++) {
 						this->memory[this->I + pos] = V[pos];
 					}
 					// On the original interpreter, when the operation is done, I = I + X + 1.
-					this->I += VX + 1;
+					this->I += _X__ + 1;
 					this->ip += 2;
 				break;
 
 				case 0x0065:
+
 				/*   0xFX65 	Fills V0 to VX with values from memory starting at address I. */
-					for (int pos = 0; pos <= VX; pos++) {
+					for (int pos = 0; pos <= _X__; pos++) {
 						V[pos] = this->memory[this->I + pos];
 					}
 
 					// On the original interpreter, when the operation is done, I = I + X + 1.
-					this->I += VX + 1;
+					this->I += _X__ + 1;
 					this->ip += 2;
 				break;
 
@@ -578,7 +618,7 @@ inline void
 Cpu_emulateCycle (
 	Cpu *this
 ) {
-	Cpu_fetchOpcode (this);
+	this->opcode = Cpu_fetchOpcode (this, this->ip);
 	Cpu_executeOpcode (this);
 }
 

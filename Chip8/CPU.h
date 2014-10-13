@@ -14,6 +14,7 @@
 #define MEMORY_SIZE 0x1000
 #define REGISTERS_COUNT 16
 #define STACK_SIZE 16
+#define INSTRUCTION_BYTES_SIZE 2
 
 // Memory layout
 #define USER_SPACE_START_ADDRESS 0x200
@@ -47,10 +48,10 @@ typedef struct _Cpu
 	uint16_t ip;
 
 	// Stack memory buffer
-    uint8_t stack [STACK_SIZE];
+    uint16_t stack [STACK_SIZE];
 
     // Stack pointer register
-    uint8_t sp;
+    uint16_t sp;
 
 	// Screen display
     Screen *screen;
@@ -137,11 +138,13 @@ Cpu_loadRom (
 /*
  * Description : Fetch the next opcode
  * Cpu *this : An allocated Cpu
- * Return : void
+ * uint16_t ip : The instruction pointer containing the opcodes to fetch
+ * Return : uint16_t the opcodes read from memory at IP
  */
-void
+uint16_t
 Cpu_fetchOpcode (
-	Cpu *this
+	Cpu *this,
+	uint16_t ip
 );
 
 /*
@@ -167,13 +170,13 @@ Cpu_unknownOpcode (
 /*
  * Description : Push an element on the stack
  * Cpu *this : An allocated Cpu
- * uint8_t value : the value to push
+ * uint16_t value : the value to push
  * Return : void
  */
 void
 Cpu_stackPush (
 	Cpu *this,
-	uint8_t value
+	uint16_t value
 );
 
 /*
@@ -181,8 +184,31 @@ Cpu_stackPush (
  * Cpu *this : An allocated Cpu
  * Return : uint8_t top byte on the stack
  */
-uint8_t
+uint16_t
 Cpu_stackPop (
+	Cpu *this
+);
+
+/*
+ * Description : Get the previous instruction before IP
+ * Cpu *this : An allocated Cpu
+ * uint16_t ip : The instruction before which one we want to get the previous one
+ * Return : uint16_t the previous ins
+truction
+ */
+uint16_t
+Cpu_getPreviousOpCode (
+	Cpu *this,
+	uint16_t ip
+);
+
+/*
+ * Description : Print the current state of the stack in the console
+ * Cpu *this : An allocated Cpu
+ * Return : void
+ */
+void
+Cpu_debugStack (
 	Cpu *this
 );
 
