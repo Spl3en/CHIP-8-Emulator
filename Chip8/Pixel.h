@@ -8,14 +8,16 @@
 
 // ---------- Defines -------------
 #define PIXEL_SIZE 16
+#define COLOR_WHITE 	sfColor_fromRGB (220, 222, 234)
+#define COLOR_BLACK		sfColor_fromRGB (53, 56, 73)
 
 
 // ------ Structure declaration -------
-typedef enum 
+typedef enum
 {
     PIXEL_BLACK = 0,
     PIXEL_WHITE = 1,
-	
+
 }   PixelValue;
 
 typedef struct _Pixel

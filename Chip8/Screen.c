@@ -112,6 +112,15 @@ Screen_loop (
     int profilersArraySize;
     Profiler **profilersArray = ProfilerFactory_getArray (&profilersArraySize);
 
+	// Scan lines effect
+	sfRectangleShape *scanLines[(RESOLUTION_H * PIXEL_SIZE) / 2];
+	for (int i = 0; i < sizeof_array(scanLines); i++) {
+		scanLines[i] = sfRectangleShape_create();
+		sfRectangleShape_setPosition (scanLines[i], (sfVector2f){.x = 0, .y = i*2});
+		sfRectangleShape_setSize (scanLines[i], (sfVector2f){.x = RESOLUTION_W * PIXEL_SIZE, .y=1});
+		sfRectangleShape_setFillColor (scanLines[i], sfColor_fromRGBA(0, 0, 0, 100));
+	}
+
     // Rendering loop
     while (this->isRunning)
     {
@@ -122,6 +131,11 @@ Screen_loop (
         for (int pos = 0; pos < RESOLUTION_H * RESOLUTION_W; pos++) {
             Pixel *pixel = this->pixels[pos];
             sfRenderWindow_drawRectangleShape (this->window, pixel->rect, NULL);
+        }
+
+		// Draw scan lines
+        for (int i = 0; i < sizeof_array(scanLines); i++) {
+			sfRenderWindow_drawRectangleShape(this->window, scanLines[i], NULL);
         }
 
         // Draw profiling information

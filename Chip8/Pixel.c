@@ -45,11 +45,11 @@ Pixel_init (
         return false;
     }
 
-    this->value = PIXEL_BLACK;
-
     sfRectangleShape_setPosition  (this->rect, (sfVector2f) {.x = PIXEL_SIZE * x, .y = PIXEL_SIZE * y});
     sfRectangleShape_setSize      (this->rect, (sfVector2f) {.x = PIXEL_SIZE, .y = PIXEL_SIZE});
-    sfRectangleShape_setFillColor (this->rect, sfBlack);
+    sfRectangleShape_setFillColor (this->rect, COLOR_BLACK);
+
+    Pixel_setValue (this, PIXEL_BLACK);
 
     return true;
 }
@@ -69,7 +69,10 @@ Pixel_setValue (
 ) {
     if (this->value != value) {
         this->value = value;
-        sfRectangleShape_setFillColor (this->rect, (value == PIXEL_WHITE) ? sfWhite : sfBlack);
+        sfRectangleShape_setFillColor (this->rect, (value == PIXEL_WHITE) ?
+			COLOR_WHITE :
+			COLOR_BLACK
+		);
     }
 }
 

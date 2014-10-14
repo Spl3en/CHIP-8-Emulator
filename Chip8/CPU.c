@@ -471,7 +471,6 @@ void
 Cpu_disass (
 	Cpu *this
 ) {
-    int i;
     uint16_t opcode = this->opcode;
 
     char v1[3] = "Vx";
@@ -479,165 +478,82 @@ Cpu_disass (
     sprintf(v1, "V%X", ((opcode & 0x0F00) >> 8));
     sprintf(v2, "V%X", ((opcode & 0x00F0) >> 4));
 
-    printf ("IP = %04X: %04X - ", this->ip, opcode);
+    printf ("IP = %04X| %04X - ", this->ip, opcode);
 
     switch (opcode>>12)
     {
 		case 0:
-		if ((opcode&0xff0) == 0xc0) {
-			printf ("SCD  %01X       ; Scroll down n lines",opcode&0xf);
-		}
-		else switch (opcode&0xfff) {
-		case 0xe0:
-			printf ("CLS          ; Clear screen");
-			break;
-		case 0xee:
-			printf ("RET          ; Return from subroutine call");
-			break;
-		case 0xfb:
-			printf("SCR           ; Scroll right");
-			break;
-		case 0xfc:
-			printf("SCL           ; Scroll left");
-			break;
-		case 0xfd:
-			printf("EXIT          ; Terminate the interpreter");
-			break;
-		case 0xfe:
-			printf("LOW           ; Disable extended screen mode");
-			break;
-		case 0xff:
-			printf("HIGH          ; Enable extended screen mode");
-			break;
-		default:
-			printf ("SYS  %03X     ; Unknown system call",opcode&0xff);
+		switch (opcode&0xfff)
+		{
+			case 0xe0:	printf ("CLS          ; Clear screen");												break;
+			case 0xee:	printf ("RET          ; Return from subroutine call");								break;
+			case 0xfb:	printf("SCR           ; Scroll right");												break;
+			case 0xfc:	printf("SCL           ; Scroll left");												break;
+			case 0xfd:	printf("EXIT          ; Terminate the interpreter");								break;
+			case 0xfe:	printf("LOW           ; Disable extended screen mode");								break;
+			case 0xff:	printf("HIGH          ; Enable extended screen mode");								break;
+			default:	printf ("SYS  %03X     ; Unknown system call",opcode&0xff);							break;
 		}
 		break;
-		case 1:
-		printf ("JP   %03X     ; Jump to address",opcode&0xfff);
-		break;
-		case 2:
-		printf ("CALL %03X     ; Call subroutine",opcode&0xfff);
-		break;
-		case 3:
-		printf ("SE   %s,%02X   ; Skip if register == constant",v1,opcode&0xff);
-		break;
-		case 4:
-		printf ("SNE  %s,%02X   ; Skip if register <> constant",v1,opcode&0xff);
-		break;
-		case 5:
-		printf ("SE   %s,%s   ; Skip if register == register",v1,v2);
-		break;
-		case 6:
-		printf ("LD   %s,%02X   ; Set VX = Byte",v1,opcode&0xff);
-		break;
-		case 7:
-		printf ("ADD  %s,%02X   ; Set VX = VX + Byte",v1,opcode&0xff);
-		break;
+
+		case 1:	printf ("JP   %03X     ; Jump to address",opcode&0xfff);									break;
+		case 2:	printf ("CALL %03X     ; Call subroutine",opcode&0xfff);									break;
+		case 3:	printf ("SE   %s,%02X   ; Skip if register == constant",v1,opcode&0xff);					break;
+		case 4:	printf ("SNE  %s,%02X   ; Skip if register <> constant",v1,opcode&0xff);					break;
+		case 5:	printf ("SE   %s,%s   ; Skip if register == register",v1,v2);								break;
+		case 6:	printf ("LD   %s,%02X   ; Set VX = Byte",v1,opcode&0xff);									break;
+		case 7:	printf ("ADD  %s,%02X   ; Set VX = VX + Byte",v1,opcode&0xff);								break;
+
 		case 8:
-		switch (opcode&0x0f) {
-		case 0:
-			printf ("LD   %s,%s   ; Set VX = VY, VF updates",v1,v2);
-			break;
-		case 1:
-			printf ("OR   %s,%s   ; Set VX = VX | VY, VF updates",v1,v2);
-			break;
-		case 2:
-			printf ("AND  %s,%s   ; Set VX = VX & VY, VF updates",v1,v2);
-			break;
-		case 3:
-			printf ("XOR  %s,%s   ; Set VX = VX ^ VY, VF updates",v1,v2);
-			break;
-		case 4:
-			printf ("ADD  %s,%s   ; Set VX = VX + VY, VF = carry",v1,v2);
-			break;
-		case 5:
-			printf ("SUB  %s,%s   ; Set VX = VX - VY, VF = !borrow",v1,v2);
-			break;
-		case 6:
-			printf ("SHR  %s,%s   ; Set VX = VX >> 1, VF = carry",v1,v2);
-			break;
-		case 7:
-			printf ("SUBN %s,%s   ; Set VX = VY - VX, VF = !borrow",v1,v2);
-			break;
-		case 14:
-			printf ("SHL  %s,%s   ; Set VX = VX << 1, VF = carry",v1,v2);
-			break;
-		default:
-			printf ("Illegal opcode");
+		switch (opcode & 0x0f)
+		{
+			case 0:	printf ("LD   %s,%s   ; Set VX = VY, VF updates",v1,v2);								break;
+			case 1:	printf ("OR   %s,%s   ; Set VX = VX | VY, VF updates",v1,v2);							break;
+			case 2:	printf ("AND  %s,%s   ; Set VX = VX & VY, VF updates",v1,v2);							break;
+			case 3:	printf ("XOR  %s,%s   ; Set VX = VX ^ VY, VF updates",v1,v2);							break;
+			case 4:	printf ("ADD  %s,%s   ; Set VX = VX + VY, VF = carry",v1,v2);							break;
+			case 5:	printf ("SUB  %s,%s   ; Set VX = VX - VY, VF = !borrow",v1,v2);							break;
+			case 6:	printf ("SHR  %s,%s   ; Set VX = VX >> 1, VF = carry",v1,v2);							break;
+			case 7:	printf ("SUBN %s,%s   ; Set VX = VY - VX, VF = !borrow",v1,v2);							break;
+			case 14:	printf ("SHL  %s,%s   ; Set VX = VX << 1, VF = carry",v1,v2);						break;
+			default:	printf ("Illegal opcode");															break;
 		}
 		break;
-		case 9:
-		printf ("SNE  %s,%s   ; Skip next instruction iv VX!=VY",v1,v2);
-		break;
-		case 10:
-		printf ("LD   I,%03X   ; Set I = Addr",opcode&0xfff);
-		break;
-		case 11:
-		printf ("JP   V0,%03X  ; Jump to Addr + V0",opcode&0xfff);
-		break;
-		case 12:
-		printf ("RND  %s,%02X   ; Set VX = random & Byte",v1,opcode&0xff);
-		break;
-		case 13:
-		printf ("DRW  %s,%s,%X ; Draw n byte sprite stored at [i] at VX,VY. Set VF = collision",v1,v2,opcode&0x0f);
-		break;
+
+		case 9:	printf ("SNE  %s,%s   ; Skip next instruction iv VX!=VY",v1,v2);							break;
+		case 10:	printf ("LD   I,%03X   ; Set I = Addr",opcode&0xfff);									break;
+		case 11:	printf ("JP   V0,%03X  ; Jump to Addr + V0",opcode&0xfff);								break;
+		case 12:	printf ("RND  %s,%02X   ; Set VX = random & Byte",v1,opcode&0xff);						break;
+		case 13:	printf ("DRW  %s,%s,%X ; Draw n byte sprite stored at [i] at VX,VY.",v1,v2,opcode & 0x0f); break;
+
 		case 14:
-		switch (opcode&0xff) {
-		case 0x9e:
-			printf ("SKP  %s      ; Skip next instruction if key VX down",v1);
-			break;
-		case 0xa1:
-			printf ("SKNP %s      ; Skip next instruction if key VX up",v1);
-			break;
-		default:
-			printf ("%04X        ; Illegal opcode", opcode);
+		switch (opcode & 0xff)
+		{
+			case 0x9e:	printf ("SKP  %s      ; Skip next instruction if key VX down",v1);					break;
+			case 0xa1:	printf ("SKNP %s      ; Skip next instruction if key VX up",v1);					break;
+			default:	printf ("%04X        ; Illegal opcode", opcode);									break;
 		}
 		break;
+
 		case 15:
-		switch (opcode&0xff) {
-		case 0x07:
-			printf ("LD   %s,DT   ; Set VX = delaytimer",v1);
-			break;
-		case 0x0a:
-			printf ("LD   %s,K    ; Set VX = key, wait for keypress",v1);
-			break;
-		case 0x15:
-			printf ("LD   DT,%s   ; Set delaytimer = VX",v1);
-			break;
-		case 0x18:
-			printf ("LD   ST,%s   ; Set soundtimer = VX",v1);
-			break;
-		case 0x1e:
-			printf ("ADD  I,%s    ; Set I = I + VX",v1);
-			break;
-		case 0x29:
-			printf ("LD  LF,%s    ; Point I to 5 byte numeric sprite for value in VX",v1);
-			break;
-		case 0x30:
-			printf ("LD  HF,%s    ; Point I to 10 byte numeric sprite for value in VX",v1);
-			break;
-		case 0x33:
-			printf ("LD   B,%s    ; Store BCD of VX in [I], [I+1], [I+2]",v1);
-			break;
-		case 0x55:
-			printf ("LD   [I],%s  ; Store V0..VX in [I]..[I+X]",v1);
-			break;
-		case 0x65:
-			printf ("LD   %s,[I]  ; Read V0..VX from [I]..[I+X]",v1);
-			break;
-		case 0x75:
-			printf ("LD   R,%s    ; Store V0..VX in RPL user flags (X<=7)",v1);
-			break;
-		case 0x85:
-			printf ("LD   %s,R    ; Read V0..VX from RPL user flags (X<=7)",v1);
-			break;
-		default:
-			printf ("%04X        ; Illegal opcode", opcode);
+		switch (opcode & 0xff)
+		{
+			case 0x07:	printf ("LD   %s,DT   ; Set VX = delaytimer",v1);									break;
+			case 0x0a:	printf ("LD   %s,K    ; Set VX = key, wait for keypress",v1);						break;
+			case 0x15:	printf ("LD   DT,%s   ; Set delaytimer = VX",v1);									break;
+			case 0x18:	printf ("LD   ST,%s   ; Set soundtimer = VX",v1);									break;
+			case 0x1e:	printf ("ADD  I,%s    ; Set I = I + VX",v1);										break;
+			case 0x29:	printf ("LD  LF,%s    ; Point I to 5 byte numeric sprite for value in VX",v1);		break;
+			case 0x30:	printf ("LD  HF,%s    ; Point I to 10 byte numeric sprite for value in VX",v1);		break;
+			case 0x33:	printf ("LD   B,%s    ; Store BCD of VX in [I], [I+1], [I+2]",v1);					break;
+			case 0x55:	printf ("LD   [I],%s  ; Store V0..VX in [I]..[I+X]",v1);							break;
+			case 0x65:	printf ("LD   %s,[I]  ; Read V0..VX from [I]..[I+X]",v1);							break;
+			case 0x75:	printf ("LD   R,%s    ; Store V0..VX in RPL user flags (X<=7)",v1);					break;
+			case 0x85:	printf ("LD   %s,R    ; Read V0..VX from RPL user flags (X<=7)",v1);				break;
+			default:	printf ("%04X        ; Illegal opcode", opcode);									break;
 		}
 		break;
     }
-
 
     printf(" (%s = %x |", v1, this->V[((opcode & 0x0F00) >> 8)]);
     printf("  %s = %x)",  v2, this->V[((opcode & 0x00F0) >> 4)]);

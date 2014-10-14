@@ -53,7 +53,7 @@ Window_init (
             .bitsPerPixel = 32
         },
         WINDOW_TITLE,
-        (WINDOW_FULLSCREEN) ? sfFullscreen : sfNone,
+        (WINDOW_FULLSCREEN) ? sfFullscreen : sfDefaultStyle,
         (sfContextSettings[]) {{
             .depthBits = 32,
             .stencilBits = 8,

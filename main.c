@@ -10,7 +10,7 @@ int main (int argc, char **argv)
         return 0;
     }
 
-    // Create a new SFML Window
+    // Open a new SFML Window
     if ((window = Window_new ()) == NULL) {
         printf ("Error : Cannot open a SFML window.\n");
         return -1;
