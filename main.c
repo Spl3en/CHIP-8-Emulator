@@ -6,7 +6,7 @@ int main (int argc, char **argv)
     Cpu *cpu;
 
     if (argc < 2) {
-        printf ("Usage : %s <game>\n", get_filename (argv[0]));
+        printf ("Usage : %s <game>\n", file_get_filename (argv[0]));
         return 0;
     }
 

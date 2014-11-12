@@ -7,8 +7,8 @@
 		<Option compiler="gcc" />
 		<Build>
 			<Target title="Debug">
-				<Option output="bin\Debug\Chip8Emulator" prefix_auto="1" extension_auto="1" />
-				<Option object_output="obj\Debug\" />
+				<Option output="bin/Debug/Chip8Emulator" prefix_auto="1" extension_auto="1" />
+				<Option object_output="obj/Debug/" />
 				<Option type="1" />
 				<Option compiler="gcc" />
 				<Compiler>
@@ -17,8 +17,8 @@
 				</Compiler>
 			</Target>
 			<Target title="Release">
-				<Option output="bin\Release\Chip8Emulator" prefix_auto="1" extension_auto="1" />
-				<Option object_output="obj\Release\" />
+				<Option output="bin/Release/Chip8Emulator" prefix_auto="1" extension_auto="1" />
+				<Option object_output="obj/Release/" />
 				<Option type="1" />
 				<Option compiler="gcc" />
 				<Compiler>
@@ -35,60 +35,61 @@
 			<Add option="-Wno-int-to-pointer-cast" />
 			<Add option="-DGLEW_STATIC" />
 			<Add option="-DSFML_STATIC" />
-			<Add directory=".\include" />
-			<Add directory="..\" />
-			<Add directory="..\Chip8Emulator" />
+			<Add option="-DNO_COLOR" />
+			<Add directory="./include" />
+			<Add directory="../" />
+			<Add directory="../Chip8Emulator" />
 		</Compiler>
 		<Linker>
 			<Add library="lib\libcsfml-window.a" />
 			<Add library="lib\libcsfml-graphics.a" />
 			<Add library="lib\libcsfml-system.a" />
 			<Add library="lib\libcsfml-audio.a" />
-			<Add directory=".\lib" />
+			<Add directory="./lib" />
 		</Linker>
-		<Unit filename="..\BbQueue\BbQueue.c">
+		<Unit filename="../BbQueue/BbQueue.c">
 			<Option compilerVar="CC" />
 		</Unit>
-		<Unit filename="..\BbQueue\BbQueue.h" />
-		<Unit filename="Chip8\CPU.c">
+		<Unit filename="../BbQueue/BbQueue.h" />
+		<Unit filename="../Utils/Utils.c">
 			<Option compilerVar="CC" />
 		</Unit>
-		<Unit filename="Chip8\CPU.h" />
-		<Unit filename="Chip8\Pixel.c">
+		<Unit filename="../Utils/Utils.h" />
+		<Unit filename="../Ztring/Ztring.c">
 			<Option compilerVar="CC" />
 		</Unit>
-		<Unit filename="Chip8\Pixel.h" />
-		<Unit filename="Chip8\Screen.c">
+		<Unit filename="../Ztring/Ztring.h" />
+		<Unit filename="../dbg/dbg.c">
 			<Option compilerVar="CC" />
 		</Unit>
-		<Unit filename="Chip8\Screen.h" />
-		<Unit filename="Chip8\Window.c">
+		<Unit filename="../dbg/dbg.h" />
+		<Unit filename="Chip8/CPU.c">
 			<Option compilerVar="CC" />
 		</Unit>
-		<Unit filename="Chip8\Window.h" />
-		<Unit filename="Profiler\Profiler.c">
+		<Unit filename="Chip8/CPU.h" />
+		<Unit filename="Chip8/Pixel.c">
 			<Option compilerVar="CC" />
 		</Unit>
-		<Unit filename="Profiler\Profiler.h" />
-		<Unit filename="Profiler\ProfilerFactory.c">
+		<Unit filename="Chip8/Pixel.h" />
+		<Unit filename="Chip8/Screen.c">
 			<Option compilerVar="CC" />
 		</Unit>
-		<Unit filename="Profiler\ProfilerFactory.h" />
+		<Unit filename="Chip8/Screen.h" />
+		<Unit filename="Chip8/Window.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="Chip8/Window.h" />
+		<Unit filename="Profiler/Profiler.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="Profiler/Profiler.h" />
+		<Unit filename="Profiler/ProfilerFactory.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="Profiler/ProfilerFactory.h" />
 		<Unit filename="main.c">
 			<Option compilerVar="CC" />
 		</Unit>
-		<Unit filename="..\Utils\Utils.c">
-			<Option compilerVar="CC" />
-		</Unit>
-		<Unit filename="..\Utils\Utils.h" />
-		<Unit filename="..\Ztring\Ztring.c">
-			<Option compilerVar="CC" />
-		</Unit>
-		<Unit filename="..\Ztring\Ztring.h" />
-		<Unit filename="..\dbg\dbg.c">
-			<Option compilerVar="CC" />
-		</Unit>
-		<Unit filename="..\dbg\dbg.h" />
 		<Extensions>
 			<code_completion />
 			<debugger />
